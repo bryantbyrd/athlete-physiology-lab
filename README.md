@@ -305,6 +305,7 @@ The full account, including every failed run, is in
 .
 ├── README.md
 ├── CHANGELOG.md
+├── LICENSE                     MIT
 ├── CONTRIBUTING.md             How to give feedback and contribute
 ├── scripts/
 │   └── sleep_import            Import script (Bash)
@@ -492,5 +493,9 @@ affiliated with or endorsed by them.
 
 ## License
 
-No license has been chosen yet. One will be added before the repository is
-made public (see [docs/publishing-checklist.md](docs/publishing-checklist.md)).
+Released under the [MIT License](LICENSE): you may use, modify and
+redistribute the code, documentation, workbook template and synthetic
+examples, provided the copyright notice is kept.
+
+Personal data published later for the project website is not covered by this
+license and will carry its own terms.

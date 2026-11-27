@@ -9,12 +9,10 @@ Nothing here has been done automatically.
       the project.
 - [ ] Confirm the capability table in `README.md` matches what you actually
       run.
-- [ ] Choose a license and add a `LICENSE` file. Consider one license for
-      code (for example MIT, BSD-3-Clause or Apache-2.0) and, later, a
-      separate one for published data and text (for example CC BY 4.0).
-      Until a license is added, others have no right to reuse the work.
+- [x] License: MIT (`LICENSE`). Personal data published later needs its own
+      terms (for example CC BY 4.0).
 - [ ] Decide whether to add a `CITATION.cff` so the project can be cited.
-- [ ] Tag the release: `git tag -a v0.1.0 -m "v0.1.0"` once the license is in.
+- [x] Release tagged locally: `v0.1.0`.
 
 ## Before every push
 
@@ -55,13 +53,23 @@ in `excel/README.md`. Still to do by hand, and again after every rebuild:
       `sports-science`, `polar-h10`, `sleep`, `physiology`).
 - [ ] Enable secret scanning and push protection in the repository settings.
 
-Suggested commands, once everything above is done (the GitHub CLI creates the
-remote repository as private):
+Steps, once everything above is done:
 
-```bash
-git commit -m "Initial project structure, import script and documentation"
-gh repo create athlete-physiology-lab --private --source . --remote origin --push
-```
+1. On GitHub, create a new **empty** repository named
+   `athlete-physiology-lab` (no README, no .gitignore, no license: the
+   repository already has them). Choose **Private** for the first push.
+2. Connect and push, replacing `<user>` with your GitHub user name:
+
+   ```bash
+   git remote add origin https://github.com/<user>/athlete-physiology-lab.git
+   git push -u origin main
+   git push origin v0.1.0
+   ```
+
+3. Review the rendered pages on GitHub, then change the visibility to Public
+   in Settings > General > Danger Zone.
+4. Optionally create a GitHub Release from the `v0.1.0` tag, using the
+   `CHANGELOG.md` entry as its notes.
 
 ## After publication
 

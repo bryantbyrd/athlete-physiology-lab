@@ -24,6 +24,7 @@ against a reference method.
   synthetic data.
 - Documentation: methods as implemented, data format, roadmap, privacy
   policy, test report.
+- MIT License.
 
 ### Known limitations
 

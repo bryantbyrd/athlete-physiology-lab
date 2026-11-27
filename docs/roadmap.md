@@ -28,7 +28,7 @@ Open items in this milestone:
 - [x] Functional test of the template and its macro on synthetic data.
 - [ ] Resolve the intermittent Excel crash during refresh of the R-R table
       (see `excel/README.md`, "Known issue").
-- [ ] Choose a license.
+- [x] Choose a license (MIT).
 - [ ] Accumulate enough nights for the rolling baselines to be populated.
 
 ## Milestone 1 — Reproducible core in Python (Planned)
