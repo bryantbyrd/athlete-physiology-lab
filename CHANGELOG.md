@@ -39,6 +39,7 @@ public workbook opens with and its dashboard formatting.
   folder and a dashboard note (`-DataNoteFile`).
 - README, privacy policy, workbook documentation and publishing checklist
   describe the demonstration dataset and its limits.
+- Documentation edited throughout for clarity, consistency and readability.
 - README rationale: LT1 and LT2 described as individualised intensity
   anchors; LT2 explicitly not treated as equivalent to critical power or
   critical speed (also in the roadmap, milestone 4).
