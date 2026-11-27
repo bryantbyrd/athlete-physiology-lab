@@ -4,6 +4,27 @@ Notable changes to this project. Versions follow
 [Semantic Versioning](https://semver.org/); while the version is below 1.0,
 anything may change between releases.
 
+## Unreleased
+
+Documentation only; no change to the software, its calculations or its
+documented limitations.
+
+### Changed
+- README rationale: LT1 and LT2 described as individualised intensity
+  anchors; LT2 explicitly not treated as equivalent to critical power or
+  critical speed (also in the roadmap, milestone 4).
+- README rationale: overnight monitoring described as reducing some
+  confounders, not removing them; sleep stage, respiration, body position
+  and circadian rhythm named, and added to Known Limitations.
+- README: new paragraph relating the project to existing wearable-based
+  training–recovery dose-response research.
+- References: added Jamnick et al. (2020), Quigley et al. (2024) and Leota et
+  al. (2025); every reference now links to PubMed, new ones also to their DOI.
+
+### Fixed
+- `docs/methods.md` said the `.xlsm` file is not under version control. The
+  sanitised template is tracked; only the private working workbook is not.
+
 ## 0.1.0 — 2026-11-26
 
 First public release: a proof of concept. Nothing in it has been validated

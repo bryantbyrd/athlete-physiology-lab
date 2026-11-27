@@ -85,8 +85,11 @@ rounding, with any intended differences documented.
 
 - Import Polar and Stryd training sessions.
 - Record laboratory test results (LT1, LT2) with test date and protocol.
-- Express each session as time and work in the moderate, heavy and severe
-  domains.
+- Express each session as time and work relative to LT1 and LT2. LT1 is
+  used as the moderate–heavy boundary. LT2 is not assumed to equal critical
+  power or critical speed, so any heavy–severe boundary based on it is
+  labelled as an approximation; estimating critical power or critical speed
+  directly is a candidate addition.
 
 **Gate:** documented laboratory protocol; domain boundaries traceable to a
 dated test; re-test policy stated.

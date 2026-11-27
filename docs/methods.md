@@ -262,8 +262,11 @@ Collected from the sections above, plus general ones.
 10. Rolling means are row-based, not calendar-based.
 11. Fixed row limits in window formulas and charts.
 12. Spreadsheet implementation: no unit tests, limited reviewability. The
-    `.xlsm` file itself is not under version control; its code is stored as
-    text in `excel/`.
+    sanitised template (`excel/template/athlete-recovery-template.xlsm`) is
+    under version control, but as a binary file whose changes Git cannot
+    show line by line; its Power Query and VBA code are therefore also
+    stored as text in `excel/`. The author's private working workbook is
+    not under version control.
 13. No frequency-domain or non-linear HRV indices are computed.
 14. Respiration is not measured, so the respiratory contribution to RMSSD
     cannot be accounted for.

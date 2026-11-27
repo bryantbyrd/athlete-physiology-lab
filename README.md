@@ -36,15 +36,29 @@ This project starts from three premises.
 
 1. **Exercise intensity should be anchored to the individual's own
    physiology.** The first and second lactate thresholds (LT1, LT2) measured
-   in a laboratory test separate the moderate, heavy and severe intensity
-   domains. Time and work accumulated in each domain is a more defensible
-   description of training dose than heart-rate percentages or pace alone.
+   in a laboratory test provide individualised intensity anchors, and time
+   and work accumulated relative to them is a more defensible description of
+   training dose than fixed percentages of maximum heart rate or pace
+   (Jamnick et al., 2020). The anchors are not equally well supported as
+   domain boundaries. LT1 has reasonable support as the boundary between the
+   moderate and heavy domains. LT2 should **not** be assumed to be
+   equivalent to critical power or critical speed, which have stronger
+   support as the boundary between the heavy and severe domains. LT2
+   values depend on how the threshold is defined and determined, and there
+   is little evidence that they reliably mark that boundary. In this
+   project LT2 is treated as a laboratory reference point, and the
+   heavy–severe boundary it implies is labelled as an approximation.
 
 2. **Sleep is a useful standardised window for measuring autonomic state.**
-   Overnight recordings avoid most of the posture, activity, food and
-   time-of-day confounders that affect short daytime measurements. Vagally
-   mediated HRV indices such as RMSSD, and nocturnal heart rate, respond to
-   the preceding day's training: several studies report suppressed nocturnal
+   Overnight recordings reduce some of the confounders that affect short
+   daytime measurements, such as physical activity, food, caffeine and
+   mental stress during the recording. They do not remove confounding.
+   Overnight heart rate and HRV still vary with sleep stage and awakenings,
+   breathing rate and depth, body position and circadian rhythm (Quigley et
+   al., 2024). Version 0.1 measures none of these; see
+   [Known Limitations](#known-limitations). Vagally mediated HRV indices
+   such as RMSSD, and nocturnal heart rate, respond to the preceding day's
+   training: several studies report suppressed nocturnal
    HRV and elevated heart rate after intense or prolonged exercise
    (Hynynen et al., 2010; Myllymäki et al., 2012; Stanley et al., 2013).
 
@@ -60,6 +74,20 @@ The intended outcome is an individual dose-response description: given
 training characterised in laboratory-anchored intensity domains, how do
 overnight heart rate and HRV respond, and over what time course do they
 return to baseline?
+
+**Relation to existing dose-response research.** Training–recovery
+dose-response relationships are already being studied at scale with
+consumer wearables. For example, Leota et al. (2025) analysed about four
+million nights from 14,689 people wearing a wrist-worn biometric device and
+found that later and more strenuous evening exercise was associated with
+higher nocturnal resting heart rate and lower nocturnal HRV. This project
+does not replace that kind of work and cannot match its sample size. It
+asks a narrower question with different measurements: one athlete, R-R
+intervals from a chest-strap ECG sensor (with raw ECG processing planned),
+openly documented calculations, and training dose expressed relative to
+laboratory-determined thresholds rather than a device's proprietary strain
+or load score. Whether that adds anything to population-level findings is
+an open question this project is meant to test, not a claim.
 
 **Why build this in the open.** Consumer recovery scores cannot be inspected.
 Here every calculation is written down ([docs/methods.md](docs/methods.md)),
@@ -245,6 +273,9 @@ This is the main practical reason for moving the calculations to Python.
   signals is still under development.
 - Whole-night metrics mix sleep stages, awakenings and movement. No sleep
   staging, no sleep-onset detection and no movement exclusion is applied.
+  Respiration, body position and circadian timing are not measured or
+  adjusted for either, so night-to-night differences may reflect them as
+  well as recovery.
 - Recording start and end are whatever the athlete pressed, not sleep onset
   and wake time.
 
@@ -458,29 +489,45 @@ real recordings.
 ## References
 
 - Buchheit M. Monitoring training status with HR measures: do all roads lead
-  to Rome? *Front Physiol.* 2014;5:73. PMID 24578692.
+  to Rome? *Front Physiol.* 2014;5:73. [PMID 24578692](https://pubmed.ncbi.nlm.nih.gov/24578692/).
 - Gilgen-Ammann R, Schweizer T, Wyss T. RR interval signal quality of a heart
   rate monitor and an ECG Holter at rest and during exercise. *Eur J Appl
-  Physiol.* 2019;119(7):1525-1532. PMID 31004219.
+  Physiol.* 2019;119(7):1525-1532. [PMID 31004219](https://pubmed.ncbi.nlm.nih.gov/31004219/).
 - Hynynen E, Vesterinen V, Rusko H, Nummela A. Effects of moderate and heavy
   endurance exercise on nocturnal HRV. *Int J Sports Med.* 2010;31(6):428-432.
-  PMID 20419617.
+  [PMID 20419617](https://pubmed.ncbi.nlm.nih.gov/20419617/).
+- Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and
+  critique of current methods to determine exercise intensity. *Sports Med.*
+  2020;50(10):1729-1756.
+  doi:[10.1007/s40279-020-01322-8](https://doi.org/10.1007/s40279-020-01322-8).
+  [PMID 32729096](https://pubmed.ncbi.nlm.nih.gov/32729096/).
+- Leota J, Presby DM, Le F, Czeisler MÉ, Mascaro L, Capodilupo ER, et al.
+  Dose-response relationship between evening exercise and sleep. *Nat
+  Commun.* 2025;16(1):3297.
+  doi:[10.1038/s41467-025-58271-x](https://doi.org/10.1038/s41467-025-58271-x).
+  [PMID 40234380](https://pubmed.ncbi.nlm.nih.gov/40234380/).
 - Lipponen JA, Tarvainen MP. A robust algorithm for heart rate variability
   time series artefact correction using novel beat classification. *J Med Eng
-  Technol.* 2019;43(3):173-181. PMID 31314618.
+  Technol.* 2019;43(3):173-181. [PMID 31314618](https://pubmed.ncbi.nlm.nih.gov/31314618/).
 - Myllymäki T, Rusko H, Syväoja H, Juuti T, Kinnunen ML, Kyröläinen H. Effects
   of exercise intensity and duration on nocturnal heart rate variability and
-  sleep quality. *Eur J Appl Physiol.* 2012;112(3):801-809. PMID 21667290.
+  sleep quality. *Eur J Appl Physiol.* 2012;112(3):801-809. [PMID 21667290](https://pubmed.ncbi.nlm.nih.gov/21667290/).
 - Plews DJ, Laursen PB, Stanley J, Kilding AE, Buchheit M. Training adaptation
   and heart rate variability in elite endurance athletes: opening the door to
-  effective monitoring. *Sports Med.* 2013;43(9):773-781. PMID 23852425.
+  effective monitoring. *Sports Med.* 2013;43(9):773-781. [PMID 23852425](https://pubmed.ncbi.nlm.nih.gov/23852425/).
+- Quigley KS, Gianaros PJ, Norman GJ, Jennings JR, Berntson GG, de Geus EJC.
+  Publication guidelines for human heart rate and heart rate variability
+  studies in psychophysiology—Part 1: Physiological underpinnings and
+  foundations of measurement. *Psychophysiology.* 2024;61(9):e14604.
+  doi:[10.1111/psyp.14604](https://doi.org/10.1111/psyp.14604).
+  [PMID 38873876](https://pubmed.ncbi.nlm.nih.gov/38873876/).
 - Stanley J, Peake JM, Buchheit M. Cardiac parasympathetic reactivation
   following exercise: implications for training prescription. *Sports Med.*
-  2013;43(12):1259-1277. PMID 23912805.
+  2013;43(12):1259-1277. [PMID 23912805](https://pubmed.ncbi.nlm.nih.gov/23912805/).
 - Task Force of the European Society of Cardiology and the North American
   Society of Pacing and Electrophysiology. Heart rate variability: standards
   of measurement, physiological interpretation and clinical use.
-  *Circulation.* 1996;93(5):1043-1065. PMID 8598068.
+  *Circulation.* 1996;93(5):1043-1065. [PMID 8598068](https://pubmed.ncbi.nlm.nih.gov/8598068/).
 
 ---
 
