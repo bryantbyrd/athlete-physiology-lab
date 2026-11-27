@@ -1,0 +1,222 @@
+# =============================================================================
+# athlete-physiology-lab — .gitignore
+#
+# Policy: this repository holds CODE, DOCUMENTATION and SYNTHETIC examples only.
+# Personal physiological recordings, private metadata, credentials and anything
+# that identifies a person or a device stay out of version control.
+#
+# The rules below are deliberately broad ("deny by default" for data formats).
+# To publish a specific file that a rule blocks, add a narrow "!" exception
+# next to the rule and run tools/prepublish_check.sh before committing.
+# See docs/privacy.md.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Physiological recordings and raw sensor exports
+# -----------------------------------------------------------------------------
+# Data directories (only their README.md is tracked)
+/data/**
+!/data/README.md
+/recordings/
+/archive/
+/Archive/
+/Current Night/
+/current-night/
+/exports/
+/raw/
+/processed/
+/derived/
+/output/
+/outputs/
+/results/
+
+# SensorForge Pro session folders and archives
+SF_*/
+SF_*.zip
+session.json
+markers.csv
+*_hr.csv
+*_rr.csv
+*_ecg.csv
+*_acc.csv
+*_ppg.csv
+*_gyro.csv
+*_mag.csv
+
+# Tabular and archive formats are treated as data unless explicitly allowed
+*.csv
+*.tsv
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.parquet
+*.feather
+*.arrow
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.mat
+*.sqlite
+*.sqlite3
+*.db
+
+# ECG / biosignal container formats
+*.edf
+*.bdf
+*.hea
+*.dat
+*.atr
+*.wfdb
+*.acq
+*.xdf
+
+# Training files (may contain GPS tracks, i.e. home location)
+*.fit
+*.tcx
+*.gpx
+*.pwx
+*.hrm
+*.kml
+*.kmz
+
+# Laboratory reports and metabolic cart exports
+/lab/
+/lab-reports/
+/metabolic/
+*.cpet
+*.bxb
+
+# Allowed: clearly synthetic example data only
+!/examples/synthetic/
+!/examples/synthetic/**
+
+# -----------------------------------------------------------------------------
+# 2. Excel workbooks
+# -----------------------------------------------------------------------------
+# Working workbooks contain cached nightly data, cached query results, chart
+# caches, author metadata and absolute file paths. Never commit them.
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+*.xltx
+*.xltm
+*.ods
+~$*
+*.tmp
+
+# Allowed: the sanitised publication template, once it has passed
+# tools/audit_workbook.py (see excel/README.md)
+!/excel/template/athlete-recovery-template.xlsm
+
+# -----------------------------------------------------------------------------
+# 3. Private metadata and identifiable information
+# -----------------------------------------------------------------------------
+/private/
+/personal/
+/local/
+/notes-private/
+/subject/
+/subjects/
+*.private.*
+*.local.*
+*.secret.*
+
+# Local configuration (device identifiers, personal paths)
+/config/*
+!/config/*.example
+!/config/README.md
+
+# Screenshots and exported figures of personal dashboards
+/screenshots/
+/figures-private/
+
+# -----------------------------------------------------------------------------
+# 4. Credentials and secrets
+# -----------------------------------------------------------------------------
+.env
+.env.*
+*.env
+!*.env.example
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa*
+id_ed25519*
+.netrc
+.npmrc
+.pypirc
+secrets.*
+*secret*.json
+*credential*.json
+*token*.json
+client_secret*.json
+service-account*.json
+rclone.conf
+# Third-party API access (Polar AccessLink, Stryd, Google)
+polar_*.json
+stryd_*.json
+.gdrive/
+.oauth/
+
+# -----------------------------------------------------------------------------
+# 5. Python (planned analysis code)
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+# Notebooks embed outputs (plots and tables of real data). Clear outputs before
+# committing any notebook.
+
+# -----------------------------------------------------------------------------
+# 6. Website build output (planned)
+# -----------------------------------------------------------------------------
+node_modules/
+/site/dist/
+/site/build/
+/site/.cache/
+/_site/
+
+# -----------------------------------------------------------------------------
+# 7. Operating system, sync clients and editors
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+.~lock.*
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.code-workspace
+.claude/
+*.log
+*.bak
+*.orig

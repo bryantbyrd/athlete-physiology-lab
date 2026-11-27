@@ -1,0 +1,24 @@
+# Normalise text files; keep shell scripts LF so they run under Linux/WSL even
+# when the repository is checked out on Windows.
+* text=auto
+
+*.sh            text eol=lf
+scripts/*       text eol=lf
+tests/*         text eol=lf
+tools/*         text eol=lf
+*.py            text eol=lf
+*.md            text eol=lf
+*.pq            text eol=lf
+*.env.example   text eol=lf
+
+# The VBA editor expects CRLF when importing modules.
+*.bas           text eol=crlf
+*.cls           text eol=crlf
+
+# Binary formats: never diff or merge as text.
+*.xlsm          binary
+*.xlsx          binary
+*.xltm          binary
+*.png           binary
+*.jpg           binary
+*.pdf           binary

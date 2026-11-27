@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+#
+# sleep_import — stage the most recent overnight recording for analysis.
+#
+# Finds the newest SensorForge Pro archive for one Polar H10 sensor, extracts
+# the heart-rate (HR) and R-R interval (RR) streams, checks that they look
+# valid, and copies them to fixed file names (hr.csv, rr.csv) that the Excel
+# workbook reads through Power Query.
+#
+# Nothing is replaced unless both streams pass every check.
+#
+# Configuration comes from environment variables, or from a config file that
+# sets the same variables (environment variables take precedence):
+#
+#   SLEEP_BASE_DIR     (required) folder holding the archive and staging folders
+#   POLAR_DEVICE_ID    (required) 8-character sensor ID printed on the H10 and
+#                      used by SensorForge Pro in archive and file names
+#   SLEEP_ARCHIVE_DIR  (optional) default: $SLEEP_BASE_DIR/Archive
+#   SLEEP_CURRENT_DIR  (optional) default: $SLEEP_BASE_DIR/Current Night
+#   SLEEP_DRVFS_DRIVE  (optional, WSL only) Windows drive to mount, e.g. "G:"
+#   SLEEP_DRVFS_MOUNT  (optional, WSL only) mount point, e.g. /mnt/g
+#
+# Config file location:
+#   $SLEEP_IMPORT_CONFIG, or
+#   ${XDG_CONFIG_HOME:-$HOME/.config}/athlete-physiology-lab/sleep_import.env
+#
+# See config/sleep_import.env.example and docs/data-format.md.
+
+set -euo pipefail
+export LC_ALL=C
+
+usage() {
+    sed -n '3,27p' "$0" | sed 's/^# \{0,1\}//'
+    echo
+    echo "Usage: $(basename "$0") [-h|--help]"
+}
+
+case "${1-}" in
+    -h|--help) usage; exit 0 ;;
+    "") ;;
+    *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+esac
+
+# --- Configuration -----------------------------------------------------------
+
+config_vars=(SLEEP_BASE_DIR POLAR_DEVICE_ID SLEEP_ARCHIVE_DIR SLEEP_CURRENT_DIR
+             SLEEP_DRVFS_DRIVE SLEEP_DRVFS_MOUNT)
+
+# Remember values supplied through the environment so they override the file.
+declare -A from_env=()
+for name in "${config_vars[@]}"; do
+    if [[ -n "${!name+set}" ]]; then
+        from_env[$name]="${!name}"
+    fi
+done
+
+config_file="${SLEEP_IMPORT_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/athlete-physiology-lab/sleep_import.env}"
+if [[ -f "$config_file" ]]; then
+    # shellcheck source=/dev/null
+    source "$config_file"
+fi
+
+for name in "${!from_env[@]}"; do
+    printf -v "$name" '%s' "${from_env[$name]}"
+done
+
+if [[ -z "${SLEEP_BASE_DIR-}" || -z "${POLAR_DEVICE_ID-}" ]]; then
+    echo "SLEEP_BASE_DIR and POLAR_DEVICE_ID must be set." >&2
+    echo "Set them in the environment or in: $config_file" >&2
+    echo "Run '$(basename "$0") --help' for details." >&2
+    exit 2
+fi
+
+if [[ ! "$POLAR_DEVICE_ID" =~ ^[0-9A-Za-z]{8}$ ]]; then
+    echo "POLAR_DEVICE_ID should be the 8-character sensor ID (letters and digits only)." >&2
+    exit 2
+fi
+
+device="$POLAR_DEVICE_ID"
+base="$SLEEP_BASE_DIR"
+archive="${SLEEP_ARCHIVE_DIR:-$base/Archive}"
+current="${SLEEP_CURRENT_DIR:-$base/Current Night}"
+
+# --- Optional: mount a Windows drive under WSL -------------------------------
+
+if [[ -n "${SLEEP_DRVFS_DRIVE-}" && -n "${SLEEP_DRVFS_MOUNT-}" ]]; then
+    if ! mountpoint -q "$SLEEP_DRVFS_MOUNT"; then
+        echo "Mounting $SLEEP_DRVFS_DRIVE at $SLEEP_DRVFS_MOUNT..."
+        sudo mkdir -p "$SLEEP_DRVFS_MOUNT"
+        sudo mount -t drvfs "$SLEEP_DRVFS_DRIVE" "$SLEEP_DRVFS_MOUNT"
+    fi
+fi
+
+# --- Locate the newest recording ---------------------------------------------
+
+if [[ ! -d "$archive" || ! -d "$current" ]]; then
+    echo "Sleep folders not found. Check that the storage location is available:" >&2
+    echo "  archive: $archive" >&2
+    echo "  current: $current" >&2
+    exit 1
+fi
+
+# Archive names embed a YYYYMMDD-HHMMSS timestamp, so the last name in sorted
+# order is the most recent recording.
+shopt -s nullglob
+files=("$archive"/SF_*_Polar-H10-"$device".zip)
+
+if (( ${#files[@]} == 0 )); then
+    echo "No matching SensorForge ZIP files found." >&2
+    exit 1
+fi
+
+latest="${files[-1]}"
+folder=$(basename "$latest" .zip)
+echo "Processing: $folder"
+
+# --- Extract and validate ----------------------------------------------------
+
+tmp=$(mktemp -d)
+trap 'rm -rf -- "$tmp"' EXIT
+
+unzip -p "$latest" "$folder/${device}_hr.csv" > "$tmp/hr.csv"
+unzip -p "$latest" "$folder/${device}_rr.csv" > "$tmp/rr.csv"
+
+# Both files must contain a header and at least one data row.
+if [[ $(wc -l < "$tmp/hr.csv") -lt 2 || $(wc -l < "$tmp/rr.csv") -lt 2 ]]; then
+    echo "Missing data. No files replaced." >&2
+    exit 1
+fi
+
+# The headers must match the layout the workbook expects.
+if [[ $(head -n 1 "$tmp/hr.csv") != rx_unix_ms,frame,hr_bpm,* \
+   || $(head -n 1 "$tmp/rr.csv") != rx_unix_ms,frame,rr_ms* ]]; then
+    echo "Unexpected CSV headers. No files replaced." >&2
+    exit 1
+fi
+
+# --- Stage for analysis ------------------------------------------------------
+
+cp "$tmp/hr.csv" "$current/hr.csv"
+cp "$tmp/rr.csv" "$current/rr.csv"
+
+wc -l "$current/hr.csv" "$current/rr.csv"
+echo "Import complete. Open Excel and click Refresh All."
