@@ -220,3 +220,43 @@ $RECYCLE.BIN/
 *.log
 *.bak
 *.orig
+
+# -----------------------------------------------------------------------------
+# 8. Crash dumps and application recovery files
+# -----------------------------------------------------------------------------
+# A crash dump is a copy of the crashed program's memory: it contains whatever
+# recording or workbook was open. Never commit or attach one.
+*.dmp
+*.mdmp
+*.hdmp
+*.wer
+*.stackdump
+core.[0-9]*
+CrashDumps/
+/crash/
+/crashes/
+/dumps/
+# Excel AutoRecover and document-recovery copies
+*.xar
+*.asd
+*.xlk
+*(Autosaved)*
+*(Recovered)*
+*(Unsaved)*
+*.xlsm.tmp
+
+# -----------------------------------------------------------------------------
+# 9. Review material and scratch work
+# -----------------------------------------------------------------------------
+# Drafts, notes, exports and screenshots prepared for private review.
+/review/
+/reviews/
+/drafts/
+/scratch/
+/tmp/
+/notes/
+REVIEW*
+*.review.*
+*-review.*
+*_review.*
+review-notes*

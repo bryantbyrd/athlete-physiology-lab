@@ -26,6 +26,8 @@ out.
 | Local configuration (`config/*` other than `*.example`) | Sensor ID and personal paths |
 | Credentials and API tokens (Polar, Stryd, cloud storage) | Account access |
 | Screenshots of personal dashboards | Readable data and dates |
+| Crash dumps and Excel recovery copies | A dump is a copy of the program's memory and contains whatever recording or workbook was open |
+| Review drafts, notes and exports | Often quote or summarise personal data |
 
 ## Identifiers to keep out of code and documentation
 

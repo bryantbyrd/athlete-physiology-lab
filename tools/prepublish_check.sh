@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
 # prepublish_check.sh — scan every tracked (or staged) file for things that
-# must not be published: data files, workbooks, identifiers, personal paths,
-# secret-like strings and oversized files.
+# must not be published: data files, workbooks, recording metadata, crash
+# dumps, review files, identifiers, personal paths, secret-like strings and
+# oversized files.
 #
 # Run from anywhere inside the repository:
 #     bash tools/prepublish_check.sh
@@ -45,6 +46,10 @@ for f in "${files[@]}"; do
             report "forbidden file type tracked: $f" ;;
         */session.json|session.json|*/markers.csv)
             report "recording metadata tracked: $f" ;;
+        *.dmp|*.mdmp|*.hdmp|*.wer|*.stackdump|*.xar|*.asd|*.xlk)
+            report "crash dump or recovery file tracked: $f" ;;
+        review/*|reviews/*|drafts/*|scratch/*|notes/*|review*|*.review.*|*-review.*|*_review.*)
+            report "review or scratch file tracked: $f" ;;
     esac
 done
 

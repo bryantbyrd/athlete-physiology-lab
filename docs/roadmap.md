@@ -35,6 +35,12 @@ Open items in this milestone:
 
 Goal: the calculations in `docs/methods.md` exist as tested Python code.
 
+Excel was the proof-of-concept platform for version 0.1. From this milestone
+on, development moves to Python for computational efficiency, reliability
+(Excel intermittently crashes while the workbook refreshes) and the signal
+processing that later milestones need. The workbook stays as the reference
+implementation of 0.1.
+
 - Read SensorForge archives directly (HR, RR, markers, metadata).
 - Reimplement per-interval columns, screening, whole-night and 5-minute
   metrics, rolling means.

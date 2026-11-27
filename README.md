@@ -4,13 +4,19 @@ An open, single-athlete monitoring project that aims to connect three things
 that are usually analysed apart: laboratory-derived physiological thresholds,
 day-to-day training load, and overnight cardiovascular and autonomic recovery.
 
-> **Project status: early prototype.**
+> **Version 0.1.0 — proof of concept.**
 > The working part today is an overnight heart-rate and heart-rate-variability
 > (HRV) pipeline built on a Polar H10 chest strap, a Bash import script and an
 > Excel workbook. Everything else in this document is a plan. None of the
 > methods has yet been validated against a reference method, and the
-> longitudinal dataset is at an early stage. This is a personal research
-> project, not a medical device, and nothing here is medical advice.
+> longitudinal dataset is at an early stage.
+>
+> **Excel intermittently crashes while the workbook refreshes**; see
+> [Known Limitations](#known-limitations) before using it.
+>
+> This is a personal research project, not a medical device, and nothing here
+> is medical advice. Feedback and collaboration are welcome: see
+> [Feedback and collaboration](#feedback-and-collaboration).
 
 Features are labelled throughout as **Working** (implemented and in routine
 use), **Planned** (not implemented) and, separately, by validation state.
@@ -90,6 +96,41 @@ Polar H10  ──>  SensorForge Pro  ──>  cloud-synced archive (ZIP per reco
 
 ---
 
+## Platform: Excel now, Python next
+
+Excel is the **initial proof-of-concept platform**, not the intended home of
+this project. It was chosen to get from raw recordings to inspectable numbers
+quickly: every intermediate value is visible in a cell, formulas can be
+changed and their effect seen at once, and no software has to be written
+before the first night can be looked at.
+
+That choice has reached its limits, and this release documents them rather
+than hiding them:
+
+- **Reliability.** Excel intermittently crashes while this workbook refreshes
+  (see [Known Limitations](#known-limitations)).
+- **Computational efficiency.** A night of beat-to-beat data is tens of
+  thousands of rows of interdependent formulas, some of them quadratic in the
+  number of beats. Recalculation is slow and grows with recording length.
+- **Testability.** Spreadsheet logic cannot be unit-tested or reviewed line
+  by line; the functional test in this repository has to drive Excel from
+  outside.
+- **Signal processing.** ECG filtering, R-peak detection, artefact
+  correction, respiration and movement analysis are not practical in a
+  spreadsheet.
+
+**Future development moves to Python**, for computational efficiency,
+reliability and advanced physiological signal processing. The first
+milestone is a tested Python implementation that reproduces the workbook's
+numbers on the same recordings, so that the transition is verified rather
+than assumed. ECG and accelerometer processing, validated artefact
+correction and everything later on the [roadmap](docs/roadmap.md) will be
+built in Python only. The workbook will remain in the repository as the
+reference implementation of version 0.1 and as a way to inspect a single
+night by eye.
+
+---
+
 ## Current capabilities
 
 | Area | Feature | Implementation | Validation |
@@ -145,12 +186,48 @@ each item.
 
 ---
 
-## Limitations
+## Known Limitations
 
-These apply to the project as it stands and should be read before
-interpreting any output.
+These apply to the project as it stands and should be read before using the
+workbook or interpreting any output.
 
-**Design**
+### Intermittent Excel crashes during refresh
+
+**Excel sometimes crashes, or the refresh fails, while the workbook loads a
+recording.** This was found during release testing and is not yet fixed.
+
+- **What happens.** While the R-R interval table is being refreshed, Excel
+  can terminate with an access violation inside `EXCEL.EXE`, or the
+  workbook's macro reports "Refresh failed" and saves nothing. The failure is
+  intermittent: the same step succeeds when repeated.
+- **How often.** In the functional test the refresh failed in 6 of 74 macro
+  runs (about 8 %) across two complete runs. In separate trials that
+  refreshed the tables repeatedly, Excel crashed in 14 of 20 sessions, after
+  between 1 and 12 refresh cycles. Two earlier runs of the functional test
+  were stopped by such a crash before the test was made to recover from it.
+- **Where it comes from.** It occurs in the workbook as originally built, not
+  only in the published template, and with the window visible or hidden,
+  automatic or manual calculation, new or unchanged data. Refreshing the
+  heart-rate table alone never failed. No single formula has been identified
+  as the cause.
+- **What it does not do.** The failure happens before anything is written to
+  the nightly log. No partial, incorrect or duplicate log entry was produced
+  in any run, and repeating the import after a restart gave the correct
+  result every time.
+- **What it can cost you.** Any edit made since the workbook was last saved,
+  including manually typed context fields.
+- **What is not known.** Testing was done by automation on a single Excel
+  version (Microsoft 365, 16.0.20625.20108, 64-bit). Whether it occurs at a
+  similar rate when the dashboard button is pressed by hand, or on other
+  versions, has not been established. Reports are welcome.
+- **What to do meanwhile.** Save the workbook before pressing the dashboard
+  button. If Excel closes, reopen the workbook and press the button again.
+
+Full details: [docs/test-report-v0.1.0.md](docs/test-report-v0.1.0.md) and
+[excel/README.md](excel/README.md#known-issue-excel-can-crash-during-a-refresh).
+This is the main practical reason for moving the calculations to Python.
+
+### Design
 
 - **One participant.** This is an n-of-1 experiment by its author. Findings
   cannot be generalised and there is no blinding.
@@ -159,7 +236,7 @@ interpreting any output.
 - **Short history.** Rolling baselines need weeks of data before they mean
   anything.
 
-**Measurement**
+### Measurement
 
 - Only the device's own heart rate and R-R interval outputs are used. Beat
   detection happens inside the sensor and cannot be inspected until raw ECG
@@ -171,7 +248,7 @@ interpreting any output.
 - Recording start and end are whatever the athlete pressed, not sleep onset
   and wake time.
 
-**Processing**
+### Processing
 
 - **The R-R artefact screening is preliminary and unvalidated.** It is a
   simple rule (absolute limits plus a 20 % change criterion). It flags and
@@ -186,16 +263,39 @@ interpreting any output.
 - Local dates depend on a hand-maintained table of UTC offsets. There is no
   time-zone database, so daylight-saving changes and travel must be entered
   by the user. Recording identification uses UTC and is unaffected.
-- **Known stability issue.** Excel sometimes crashes while the workbook's
-  R-R table is being refreshed (observed on one Excel version, under
-  automation). No log entry is lost or duplicated, and repeating the import
-  works, but unsaved edits are lost. See
-  [excel/README.md](excel/README.md#known-issue-excel-can-crash-during-a-refresh).
-- The analysis lives in a spreadsheet: flexible for prototyping, but hard to
-  test and to review. Moving the calculations to tested Python code is the
-  first development priority.
+- The analysis lives in a spreadsheet: flexible for prototyping, but slow,
+  hard to test and hard to review. Moving the calculations to tested Python
+  code is the first development priority.
 
 A fuller, itemised list is in [docs/methods.md](docs/methods.md#known-limitations).
+
+---
+
+## Test results for this release
+
+Software tests only, on synthetic data. They show that the software does
+what it is specified to do; they do not validate any metric physiologically.
+
+| Test | Outcome |
+|---|---|
+| Import script, 17 checks | 17 passed |
+| Workbook template and macro, 50 checks over 30 synthetic nights (final run) | 50 passed. The refresh failed in 2 of 36 macro runs; each passed on the first retry |
+| Same test, previous complete run (47 checks at that time) | 47 passed. The refresh failed in 4 of 38 macro runs; one recording needed three retries |
+| Earlier runs of the workbook test | 2 stopped when Excel crashed; 2 stopped on errors in the test script, since fixed |
+| Repeated-refresh trials, 20 Excel sessions | Excel crashed in 14 |
+| Privacy checks on the release files and the template | Passed |
+
+What the workbook test covers: a new recording adds one log entry;
+re-importing an existing recording never adds a duplicate; manually entered
+notes survive a re-import; recordings are identified by UTC start time and
+local dates follow the time-zone table; rolling means are `#N/A` until 7 or
+28 nights exist and then match an independent calculation; trend charts grow
+with the log and show every value.
+
+The test recovers from Excel failures by saving after each step, restarting
+Excel and repeating the failed step, and it reports how many times it had to.
+The full account, including every failed run, is in
+[docs/test-report-v0.1.0.md](docs/test-report-v0.1.0.md).
 
 ---
 
@@ -204,6 +304,8 @@ A fuller, itemised list is in [docs/methods.md](docs/methods.md#known-limitation
 ```text
 .
 ├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md             How to give feedback and contribute
 ├── scripts/
 │   └── sleep_import            Import script (Bash)
 ├── config/
@@ -227,6 +329,7 @@ A fuller, itemised list is in [docs/methods.md](docs/methods.md#known-limitation
 │   ├── data-format.md          Recording file layout
 │   ├── roadmap.md              Development plan and validation gates
 │   ├── privacy.md              What is and is not published
+│   ├── test-report-v0.1.0.md   What was tested for this release, and what failed
 │   └── publishing-checklist.md Steps before the repository goes public
 ├── data/                       Local data only; contents are git-ignored
 ├── analysis/                   Planned Python package (empty)
@@ -311,7 +414,8 @@ described in [docs/privacy.md](docs/privacy.md).
 ## Roadmap summary
 
 1. **Reproducible core** — port the workbook calculations to tested Python and
-   show the two agree on the same nights.
+   show the two agree on the same nights. This also retires the Excel
+   refresh problem.
 2. **Signal quality** — overnight ECG and accelerometer recording and import;
    R-peak detection; validated artefact correction.
 3. **Richer overnight physiology** — respiration, movement, body position,
@@ -321,6 +425,32 @@ described in [docs/privacy.md](docs/privacy.md).
 6. **Communication** — public interactive website.
 
 Details and validation gates: [docs/roadmap.md](docs/roadmap.md).
+
+---
+
+## Feedback and collaboration
+
+This project is published early, with its weaknesses listed, because outside
+criticism is more useful now than after the methods have hardened.
+Suggestions and collaboration from researchers and developers are welcome,
+in particular on:
+
+- **Methods** — anything in [docs/methods.md](docs/methods.md) that is wrong,
+  weak or better done another way: HRV definitions, windowing, artefact
+  handling, rolling baselines.
+- **Validation** — reference methods, open datasets and study designs that
+  would make the planned comparisons convincing.
+- **The Excel refresh crash** — reproductions on other Excel versions, or a
+  diagnosis.
+- **The move to Python** — architecture, libraries, and later code review.
+- **Related work** — if you study athlete monitoring, wearable validation,
+  HRV methodology or sleep physiology and see common ground.
+
+Open an issue on GitHub to start a conversation; there are templates for
+scientific feedback and for bug reports. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for details, including one firm rule:
+never post personal physiological data, crash dumps or workbooks containing
+real recordings.
 
 ---
 

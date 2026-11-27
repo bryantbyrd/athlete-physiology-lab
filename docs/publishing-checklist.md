@@ -14,6 +14,7 @@ Nothing here has been done automatically.
       separate one for published data and text (for example CC BY 4.0).
       Until a license is added, others have no right to reuse the work.
 - [ ] Decide whether to add a `CITATION.cff` so the project can be cited.
+- [ ] Tag the release: `git tag -a v0.1.0 -m "v0.1.0"` once the license is in.
 
 ## Before every push
 
@@ -36,8 +37,8 @@ in `excel/README.md`. Still to do by hand, and again after every rebuild:
       reports no failures (`tools/prepublish_check.sh` runs it, and compares
       the cached data with the synthetic night).
 - [ ] `tests\test_template.ps1` passes (Windows with Excel).
-- [ ] Decide whether the known intermittent Excel crash during refresh
-      (`excel/README.md`) must be fixed before release or can ship documented.
+- [x] Known intermittent Excel crash during refresh: ships documented in
+      v0.1.0 (README "Known Limitations", `docs/test-report-v0.1.0.md`).
 - [ ] Template opened in Excel and inspected by eye: every sheet, the Power
       Query editor, the VBA editor, File > Info. Close without saving.
 - [ ] Dashboard button clicked once by hand on synthetic data; a row appears
