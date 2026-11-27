@@ -56,6 +56,35 @@ have in mind.
 4. Be civil. Disagreement about methods is expected and useful; disrespect
    is not.
 
+## Documentation style
+
+All human-readable documentation (READMEs, methods, roadmap, changelog,
+test reports, dataset notes, issue templates and other Markdown) follows
+these rules:
+
+- **No em dashes (U+2014).** Use a comma, colon, semicolon, parentheses or a
+  separate sentence, whichever reads most naturally. Labels in lists and
+  headings take a colon: `**Methods**: ...`, `## Milestone 1: ...`. Empty
+  table cells are written out (for example "Not applicable").
+- **En dashes (U+2013, –) only where they carry meaning:** numerical and date ranges
+  (`20–30 min`) and paired terms such as `moderate–heavy` or
+  `training–recovery`. Ordinary hyphenated compounds and established terms
+  keep the hyphen (`R-R interval`, `dose-response`).
+- **Plain, academic register.** State what was done, what was found and
+  what is not known. Avoid promotional or emphatic language; keep claims
+  separate from evidence (ground rule 3).
+- **Leave verbatim material as it is:** quotations, reference titles as
+  given in PubMed, file contents, command output, checksums and generated
+  manifests.
+- Source code and its comments are not covered by these rules; change them
+  only with the code.
+
+Before committing documentation, this should print nothing:
+
+```bash
+git grep -n -P '\x{2014}' -- '*.md'
+```
+
 ## Before opening a pull request
 
 ```bash

@@ -1,4 +1,4 @@
-# Test report — v0.1.0
+# Test report: v0.1.0
 
 Date: 2026-11-26. The functional tests used synthetic recordings and
 disposable copies of the workbook template. One diagnostic trial (section 3)

@@ -4,7 +4,7 @@ An open, single-athlete monitoring project that aims to connect three things
 that are usually analysed apart: laboratory-derived physiological thresholds,
 day-to-day training load, and overnight cardiovascular and autonomic recovery.
 
-> **Version 0.1.0 — proof of concept.**
+> **Version 0.1.0: proof of concept.**
 > The working part today is an overnight heart-rate and heart-rate-variability
 > (HRV) pipeline built on a Polar H10 chest strap, a Bash import script and an
 > Excel workbook. Everything else in this document is a plan. None of the
@@ -203,17 +203,17 @@ depends on those signals. Everything in the table below is a proposal.
 
 | Proposed feature | Status | Reference method planned for validation |
 |---|---|---|
-| Python ECG signal processing | Planned | — |
+| Python ECG signal processing | Planned | Not yet defined |
 | R-peak detection from raw ECG | Planned | Annotated open ECG databases; device R-R output |
 | Validated R-R artefact correction | Planned | Published correction algorithms (e.g. Lipponen & Tarvainen, 2019); established HRV software |
 | ECG-derived respiratory rate | Planned, unvalidated | Simultaneous respiration reference |
 | Accelerometer-based movement and body position | Planned, unvalidated | Direct observation / annotated protocol |
 | Sleep-stage classification | Planned, unvalidated; cardiorespiratory staging is an estimate at best | Polysomnography, if access can be arranged |
-| Polar and Stryd training-data integration | Planned | — |
+| Polar and Stryd training-data integration | Planned | Not yet defined |
 | Laboratory intensity domains (LT1, LT2) applied to training data | Planned | Laboratory lactate testing |
-| Individual overnight recovery kinetics | Planned, exploratory | — |
+| Individual overnight recovery kinetics | Planned, exploratory | Not yet defined |
 | Training-recovery dose-response modelling | Planned, exploratory | Out-of-sample prediction |
-| Public interactive website with selected data | Planned | — |
+| Public interactive website with selected data | Planned | Not yet defined |
 
 See the [roadmap](docs/roadmap.md) for ordering and for what "done" means for
 each item.
@@ -529,16 +529,16 @@ Automated tests do not use this recording; they generate synthetic data.
 
 ## Roadmap summary
 
-1. **Reproducible core** — port the workbook calculations to tested Python and
+1. **Reproducible core**: port the workbook calculations to tested Python and
    show the two agree on the same nights. This also retires the Excel
    refresh problem.
-2. **Signal quality** — overnight ECG and accelerometer recording and import;
+2. **Signal quality**: overnight ECG and accelerometer recording and import;
    R-peak detection; validated artefact correction.
-3. **Richer overnight physiology** — respiration, movement, body position,
+3. **Richer overnight physiology**: respiration, movement, body position,
    sleep-stage estimates.
-4. **Training integration** — Polar and Stryd data; LT1/LT2 intensity domains.
-5. **Modelling** — overnight recovery kinetics; dose-response.
-6. **Communication** — public interactive website.
+4. **Training integration**: Polar and Stryd data; LT1/LT2 intensity domains.
+5. **Modelling**: overnight recovery kinetics; dose-response.
+6. **Communication**: public interactive website.
 
 Details and validation gates: [docs/roadmap.md](docs/roadmap.md).
 
@@ -551,15 +551,15 @@ criticism is more useful now than after the methods have hardened.
 Suggestions and collaboration from researchers and developers are welcome,
 in particular on:
 
-- **Methods** — anything in [docs/methods.md](docs/methods.md) that is wrong,
+- **Methods**: anything in [docs/methods.md](docs/methods.md) that is wrong,
   weak or better done another way: HRV definitions, windowing, artefact
   handling, rolling baselines.
-- **Validation** — reference methods, open datasets and study designs that
+- **Validation**: reference methods, open datasets and study designs that
   would make the planned comparisons convincing.
-- **The Excel refresh crash** — reproductions on other Excel versions, or a
+- **The Excel refresh crash**: reproductions on other Excel versions, or a
   diagnosis.
-- **The move to Python** — architecture, libraries, and later code review.
-- **Related work** — if you study athlete monitoring, wearable validation,
+- **The move to Python**: architecture, libraries, and later code review.
+- **Related work**: if you study athlete monitoring, wearable validation,
   HRV methodology or sleep physiology and see common ground.
 
 Open an issue on GitHub to start a conversation; there are templates for
@@ -601,7 +601,7 @@ real recordings.
   effective monitoring. *Sports Med.* 2013;43(9):773-781. [PMID 23852425](https://pubmed.ncbi.nlm.nih.gov/23852425/).
 - Quigley KS, Gianaros PJ, Norman GJ, Jennings JR, Berntson GG, de Geus EJC.
   Publication guidelines for human heart rate and heart rate variability
-  studies in psychophysiology—Part 1: Physiological underpinnings and
+  studies in psychophysiology-Part 1: Physiological underpinnings and
   foundations of measurement. *Psychophysiology.* 2024;61(9):e14604.
   doi:[10.1111/psyp.14604](https://doi.org/10.1111/psyp.14604).
   [PMID 38873876](https://pubmed.ncbi.nlm.nih.gov/38873876/).

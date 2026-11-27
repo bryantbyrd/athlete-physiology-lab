@@ -7,7 +7,7 @@ Nothing in milestones 1-6 is implemented. Each has a validation gate: the
 feature is not described as working until the gate has been met and the
 result written up in `docs/`.
 
-## Milestone 0 — Prototype (Working)
+## Milestone 0: Prototype (Working)
 
 - Polar H10 overnight HR and R-R acquisition through SensorForge Pro.
 - Bash import and validation script.
@@ -31,7 +31,7 @@ Open items in this milestone:
 - [x] Choose a license (MIT).
 - [ ] Accumulate enough nights for the rolling baselines to be populated.
 
-## Milestone 1 — Reproducible core in Python (Planned)
+## Milestone 1: Reproducible core in Python (Planned)
 
 Goal: the calculations in `docs/methods.md` exist as tested Python code.
 
@@ -52,7 +52,7 @@ implementation of 0.1.
 **Gate:** Python output matches the workbook on the same nights to within
 rounding, with any intended differences documented.
 
-## Milestone 2 — ECG and signal quality (Planned)
+## Milestone 2: ECG and signal quality (Planned)
 
 - Overnight ECG and accelerometer recording and import. Under development:
   so far only a 10-minute simultaneous-acquisition test exists.
@@ -67,7 +67,7 @@ rounding, with any intended differences documented.
 - HRV metrics: agreement (bias and limits of agreement) with established HRV
   analysis software on identical R-R series.
 
-## Milestone 3 — Richer overnight physiology (Planned, unvalidated)
+## Milestone 3: Richer overnight physiology (Planned, unvalidated)
 
 - ECG-derived respiratory rate.
 - Movement and body position from the accelerometer.
@@ -81,7 +81,7 @@ rounding, with any intended differences documented.
   Without it, stage outputs stay labelled as unvalidated estimates and are
   not used as inputs to conclusions.
 
-## Milestone 4 — Training data and intensity domains (Planned)
+## Milestone 4: Training data and intensity domains (Planned)
 
 - Import Polar and Stryd training sessions.
 - Record laboratory test results (LT1, LT2) with test date and protocol.
@@ -94,7 +94,7 @@ rounding, with any intended differences documented.
 **Gate:** documented laboratory protocol; domain boundaries traceable to a
 dated test; re-test policy stated.
 
-## Milestone 5 — Recovery kinetics and dose-response (Exploratory)
+## Milestone 5: Recovery kinetics and dose-response (Exploratory)
 
 - Describe the overnight time course of heart rate and HRV with fitted
   parameters (for example, time to nadir, rate of change after sleep onset).
@@ -106,7 +106,7 @@ dated test; re-test policy stated.
 - Out-of-sample evaluation; uncertainty reported for every estimate.
 - Explicit statement that results describe one individual.
 
-## Milestone 6 — Public website (Planned)
+## Milestone 6: Public website (Planned)
 
 - Interactive pages demonstrating the methods on selected data from the
   longitudinal experiment.

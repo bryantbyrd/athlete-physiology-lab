@@ -26,10 +26,10 @@ Notation: `RR[i]` is the i-th R-R interval in milliseconds, in file order.
 Two CSV files per night, staged by `scripts/sleep_import`
 (layout in [data-format.md](data-format.md)):
 
-- **HR stream** — one row per heart-rate notification from the sensor,
+- **HR stream**: one row per heart-rate notification from the sensor,
   approximately one per second, with a receive timestamp (`rx_unix_ms`) and
   the sensor-reported heart rate (`hr_bpm`).
-- **RR stream** — one row per R-R interval (`rr_ms`), with the receive
+- **RR stream**: one row per R-R interval (`rr_ms`), with the receive
   timestamp of the notification that carried it.
 
 Beat detection is performed inside the Polar H10. The raw ECG is not used.
@@ -88,20 +88,20 @@ Consequences worth knowing:
 
 | Metric | Definition | Screened? |
 |---|---|---|
-| Recording start (UTC) | First HR receive timestamp (Unix epoch milliseconds) converted to a UTC date-time. Identifies the recording | — |
-| UTC offset (h) | Offset in effect at the recording start, from the time-zone table (section 4.1) | — |
-| Recording date (local) | Recording start (UTC) + UTC offset | — |
-| Recording duration (min) | Last HR elapsed time / 60 | — |
+| Recording start (UTC) | First HR receive timestamp (Unix epoch milliseconds) converted to a UTC date-time. Identifies the recording | Not applicable |
+| UTC offset (h) | Offset in effect at the recording start, from the time-zone table (section 4.1) | Not applicable |
+| Recording date (local) | Recording start (UTC) + UTC offset | Not applicable |
+| Recording duration (min) | Last HR elapsed time / 60 | Not applicable |
 | Mean / minimum / maximum heart rate (bpm) | Mean / min / max of sensor-reported `hr_bpm` (HR stream, not derived from RR) | No |
 | Mean RR interval (ms) | Mean of all `RR[i]` | No |
 | RMSSD (ms) | `sqrt(mean(squared differences))` over all successive differences | No |
 | lnRMSSD | Natural log of RMSSD | No |
 | SDNN (ms) | Sample standard deviation of all `RR[i]` | No |
 | pNN50 (%) | Share of successive differences with absolute value > 50 ms | No |
-| Flagged intervals (%) | Share of intervals flagged in section 3 | — |
-| Total RR intervals | `N` | — |
+| Flagged intervals (%) | Share of intervals flagged in section 3 | Not applicable |
+| Total RR intervals | `N` | Not applicable |
 | Screened RMSSD (ms) | `sqrt(mean(screened squared differences))` | Yes |
-| Excluded RR pairs (%) | `100 × (1 − screened differences / all differences)` | — |
+| Excluded RR pairs (%) | `100 × (1 − screened differences / all differences)` | Not applicable |
 | Screened lnRMSSD | Natural log of screened RMSSD | Yes |
 
 Notes:
@@ -199,10 +199,10 @@ Rows are consecutive *log entries*. A missed night does not leave a gap, so a
 
 ## 7. Dashboard and trend charts
 
-- **Dashboard** — summary panel for the current night; scatter charts of
+- **Dashboard**: summary panel for the current night; scatter charts of
   5-minute mean heart rate and of original and screened RMSSD against elapsed
   time. Chart ranges resize to the number of windows in the recording.
-- **Longitudinal Trends** — three charts against local recording date:
+- **Longitudinal Trends**: three charts against local recording date:
   mean overnight heart rate with its 7- and 28-night rolling means; screened
   lnRMSSD with its 7- and 28-night rolling means; and nightly screened RMSSD
   in milliseconds on its own. Rolling means are computed on the ln scale

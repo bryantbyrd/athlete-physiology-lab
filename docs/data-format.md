@@ -25,7 +25,7 @@ sorts them chronologically; `sleep_import` relies on this to pick the newest.
 
 Files are UTF-8 text with LF line endings and a single header row.
 
-## `<ID>_hr.csv` — heart-rate stream
+## `<ID>_hr.csv`: heart-rate stream
 
 One row per heart-rate notification, approximately one per second.
 
@@ -44,7 +44,7 @@ The workbook uses `rx_unix_ms` and `hr_bpm`. The meanings of the remaining
 columns are inferred from their names and values and have not been confirmed
 against app documentation.
 
-## `<ID>_rr.csv` — R-R interval stream
+## `<ID>_rr.csv`: R-R interval stream
 
 One row per R-R interval.
 

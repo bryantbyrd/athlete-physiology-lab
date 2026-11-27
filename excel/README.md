@@ -14,9 +14,9 @@ excel/
 
 Two workbooks are referred to below:
 
-- the **working workbook** — private, contains real recordings, never
+- the **working workbook**: private, contains real recordings, never
   modified by anything in this repository;
-- the **template** (the public workbook) — built from a copy of the
+- the **template** (the public workbook): built from a copy of the
   working workbook, loaded with the
   [authorised demonstration night](../examples/demo-night-2026-11-26/README.md),
   with the corrections listed under
@@ -56,9 +56,9 @@ staged CSV files is replaced by the `DataFolder` parameter (`DataFolder.pq`).
 Exported verbatim from the working workbook; the template carries the same
 module unchanged. It contains no personal information.
 
-- `SaveNight` — checks the summary row is complete, then adds the night to
+- `SaveNight`: checks the summary row is complete, then adds the night to
   `Nightlog` or overwrites the existing row for the same recording.
-- `RefreshAndSaveNight` — refreshes both query tables, waits for calculation
+- `RefreshAndSaveNight`: refreshes both query tables, waits for calculation
   to finish, then calls `SaveNight`. Bound to the dashboard button.
 
 The module addresses sheets by name and log columns by position (1-12 and

@@ -58,7 +58,7 @@ public workbook opens with and its dashboard formatting.
 - Building the workbook from the full 7-hour demonstration night crashed
   Excel during the R-R refresh in 18 of 21 attempts (see Known Limitations).
 
-## 0.1.0 — 2026-11-26
+## 0.1.0 (2026-11-26)
 
 First public release: a proof of concept. Nothing in it has been validated
 against a reference method.
