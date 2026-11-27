@@ -11,6 +11,10 @@ tools/*         text eol=lf
 *.pq            text eol=lf
 *.env.example   text eol=lf
 
+# Published recordings stay byte-identical to their SHA256SUMS on every OS.
+examples/demo-night-2026-11-26/*.csv  -text
+examples/demo-night-2026-11-26/SHA256SUMS  text eol=lf
+
 # The VBA editor expects CRLF when importing modules.
 *.bas           text eol=crlf
 *.cls           text eol=crlf

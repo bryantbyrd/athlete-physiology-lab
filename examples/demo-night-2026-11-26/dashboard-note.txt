@@ -1,0 +1,6 @@
+REAL PHYSIOLOGICAL DATA - DEMONSTRATION NIGHT
+One overnight recording (night of 26 November 2026), voluntarily published by the project author, who authorised publication of this recording only.
+
+Heart rate and R-R intervals are the sensor's original values: not smoothed, edited or selected. Clock times have been removed (the recording is shifted to start at 00:00 UTC); elapsed time is exact.
+
+Experimental, unvalidated prototype. Not medical advice. Source files: examples/demo-night-2026-11-26/ in the repository.

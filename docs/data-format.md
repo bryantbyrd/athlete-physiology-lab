@@ -91,6 +91,15 @@ workbook's queries do not depend on the sensor ID or the date:
 <current-night-folder>/rr.csv
 ```
 
+## Demonstration recording
+
+`examples/demo-night-2026-11-26/hr.csv` and `rr.csv` are staged files in the
+layout above, from one real night the author has authorised for
+publication. Their `rx_unix_ms` values are shifted by a constant so the
+recording starts at 2026-11-26 00:00:00.000 UTC; they are not the real
+receive times. All other columns are unchanged. See
+`tools/deidentify_recording.py`.
+
 ## Synthetic recordings
 
 `tools/make_synthetic_night.py` writes files in this layout from a random

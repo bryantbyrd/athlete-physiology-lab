@@ -31,16 +31,32 @@ in `excel/README.md`. Still to do by hand, and again after every rebuild:
 
 - [ ] Template rebuilt by the procedure in `excel/README.md` (not edited and
       re-saved by hand).
-- [ ] `python3 tools/audit_workbook.py excel/template/athlete-recovery-template.xlsm`
+- [ ] `python3 tools/audit_workbook.py --expect-data examples/demo-night-2026-11-26 excel/template/athlete-recovery-template.xlsm`
       reports no failures (`tools/prepublish_check.sh` runs it, and compares
-      the cached data with the synthetic night).
+      the cached data with the demonstration night).
 - [ ] `tests\test_template.ps1` passes (Windows with Excel).
 - [x] Known intermittent Excel crash during refresh: ships documented in
       v0.1.0 (README "Known Limitations", `docs/test-report-v0.1.0.md`).
 - [ ] Template opened in Excel and inspected by eye: every sheet, the Power
       Query editor, the VBA editor, File > Info. Close without saving.
-- [ ] Dashboard button clicked once by hand on synthetic data; a row appears
-      in the nightly log. (The automated test runs the macro, not the click.)
+- [ ] Dashboard button clicked once by hand on synthetic data, on a copy;
+      a row appears in the nightly log. (The automated test runs the macro,
+      not the click.)
+
+## Demonstration dataset
+
+- [ ] The author has explicitly authorised publication of this recording,
+      and the scope (this night only) is stated in its README and in
+      `docs/privacy.md`.
+- [ ] The data licence (CC BY-NC 4.0) is stated in its README and kept
+      distinct from the software's MIT licence (the check fails if the
+      dataset README does not name CC BY-NC 4.0).
+- [ ] `examples/demo-night-2026-11-26/` holds only the five listed files;
+      `sha256sum -c SHA256SUMS` passes there.
+- [ ] Public workbook values compared with the working workbook on the same
+      night; differences, if any, explained.
+- [ ] No other real recording, export or screenshot is staged
+      (`git status`, `git diff --cached --stat`).
 
 ## Creating the GitHub repository
 

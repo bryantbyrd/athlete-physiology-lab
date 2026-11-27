@@ -16,8 +16,10 @@ Two workbooks are referred to below:
 
 - the **working workbook** — private, contains real recordings, never
   modified by anything in this repository;
-- the **template** — built from a copy of the working workbook, loaded with
-  synthetic data, with the corrections listed under
+- the **template** (the public workbook) — built from a copy of the
+  working workbook, loaded with the
+  [authorised demonstration night](../examples/demo-night-2026-11-26/README.md),
+  with the corrections listed under
   [Corrections made in the template](#corrections-made-in-the-template).
 
 ## Template structure
@@ -94,6 +96,21 @@ it can adopt them by hand, or be replaced by a copy of the template.
    data the series falls outside the axis and the chart appears empty (this
    is how it was found: the RMSSD trend chart was blank in the functional
    test). Fixed bounds also hint at the range of the author's own values.
+6. **Dashboard presentation.** Formatting only; no formula, named range,
+   cell position or chart source changes, so every number shown is the same
+   cell value as before.
+   - Summary values have fixed decimals per quantity (for example heart rate
+     0.1 bpm, lnRMSSD 0.01) instead of up to nine; the cells keep full
+     precision.
+   - The two charts draw straight segments between the 5-minute values. The
+     working workbook uses Excel's *smoothed* line type, which draws curves
+     between points that are not in the data.
+   - Charts are sized to sit beside the table, with light gridlines, ticks
+     every 60 minutes, and distinct colours for original and screened
+     RMSSD. The RMSSD axis starts at 0; the heart-rate axis at a generic
+     30 bpm (Excel's automatic minimum of 0 flattens the night), with an
+     automatic maximum.
+   - A text box states what data the workbook holds.
 
 `tools/build_template.ps1` applies each correction only if it finds the old
 form, so it keeps working once the working workbook has been updated.
@@ -115,6 +132,12 @@ Not changed; noted for a later revision.
 
 Found while testing, with Excel for Microsoft 365 version 16.0.20625.20108
 (64-bit) driven through automation.
+
+**Update after v0.1.0.** Building the public workbook from the 7-hour
+demonstration night crashed Excel during the R-R refresh in 18 of 21
+attempts. The functional test run immediately afterwards (1-hour synthetic
+nights) completed 34 macro refreshes without a failure. Recording length may
+be a factor; this has not been tested systematically.
 
 **What happens.** While the R-R query table is being refreshed, Excel
 sometimes terminates with an access violation inside `EXCEL.EXE`
@@ -157,28 +180,37 @@ This is one more reason for roadmap milestone 1.
 ## Clean template
 
 [`template/athlete-recovery-template.xlsm`](template/athlete-recovery-template.xlsm)
-keeps the workbook's formulas, queries, charts and macro but contains no
-personal data. The cached values it opens with come from a synthetic
-recording (`tools/make_synthetic_night.py`, seed 1, 7 hours). The numbers on
-its dashboard are not physiological measurements.
+keeps the workbook's formulas, queries, charts and macro. **The values it
+opens with are real physiological data**: the demonstration night of
+26 November 2026, published by the project author with explicit
+authorisation for that recording only
+([`../examples/demo-night-2026-11-26/`](../examples/demo-night-2026-11-26/README.md)).
+Clock time has been removed from it; elapsed time is exact. It contains no
+other personal data: the nightly log is empty and no metadata, path or
+identifier remains.
 
 ### Differences from the working workbook
 
-- The five corrections above.
+- The six corrections above.
 - Queries, query tables and connections are named `hr_stream` and
   `rr_stream` (no sensor ID).
 - The source path is the `DataFolder` parameter, set to a placeholder.
 - The nightly log is empty.
 - Author names, the saved-in folder and printer settings are removed.
 
-All other formulas, the dashboard charts, the named ranges for the 5-minute
-windows and the VBA module are unchanged.
+All other formulas, the data shown by the dashboard charts, the named
+ranges for the 5-minute windows and the VBA module are unchanged.
+
+Opening a downloaded copy triggers Excel's macro security warnings; what
+they mean and how to handle them is in the main
+[README](../README.md#macro-security-warnings).
 
 ### Using the template
 
 1. Stage a recording with `scripts/sleep_import` (or generate a synthetic
    one) so that a folder contains `hr.csv` and `rr.csv`.
-2. Open the template and enable macros.
+2. Open the template and enable macros (see
+   [macro security warnings](../README.md#macro-security-warnings)).
 3. Data > Get Data > Launch Power Query Editor > Manage Parameters: set
    `DataFolder` to that folder, with a trailing backslash.
 4. On the `Settings` sheet, replace the offset `0` with your own UTC offset
@@ -191,11 +223,13 @@ windows and the VBA module are unchanged.
 ### How it was built
 
 ```text
-tools/make_synthetic_night.py   synthetic hr.csv / rr.csv
+tools/deidentify_recording.py   demonstration hr.csv / rr.csv: clock time
+                                removed, values unchanged
 tools/build_template.ps1        drives Excel on a COPY of the working workbook:
                                 replaces and renames the queries, refreshes from
-                                the synthetic files, applies the corrections,
-                                empties the log, removes document properties
+                                the demonstration files, applies the corrections,
+                                formats the dashboard, empties the log, removes
+                                document properties
 tools/scrub_workbook.py         removes what Excel writes on every save
                                 (save path, author fields, printer settings)
 tools/audit_workbook.py         checks the result
@@ -211,14 +245,24 @@ Privacy:
 
 - `audit_workbook.py`: no failures and no warnings, with a private-terms list
   covering the sensor ID, user names, drive and profile paths.
-- With `--expect-data`, the cached HR and RR columns are identical, value for
-  value, to the synthetic CSV files. No timestamp from a real recording is
-  present.
+- With `--expect-data`, the cached HR and RR columns (25,371 and 22,739
+  rows) are identical, value for value, to the published demonstration
+  files.
+- A separate scan of every part of the package found no value in the range
+  of the original clock times (the same scan finds about 48,000 in the
+  working workbook).
+
+Reproduction of the working workbook, on the demonstration night: all 14
+whole-night values (including mean heart rate, original and screened RMSSD
+and lnRMSSD, flagged intervals and excluded R-R pairs) and all 840 values of
+the 84 five-minute windows are identical to full precision.
 - Package integrity after scrubbing: all XML parts well-formed, no dangling
   relationships; Excel opens the file without repair.
 
 Function (`tests/test_template.ps1`, 30 synthetic nights, run on a
-disposable copy with the workbook's own `RefreshAndSaveNight` macro):
+disposable copy with the workbook's own `RefreshAndSaveNight` macro; latest
+run, after the dashboard changes: 50 of 50 checks passed, no refresh
+failures in 34 macro runs):
 
 - a new recording creates one nightly-log entry;
 - re-importing a recording that is already in the log (an earlier one, the
@@ -237,8 +281,9 @@ In two full runs, 6 of 74 macro runs (about 8 %) failed during the refresh (see 
 issue above); each failed step was repeated in a fresh session and then
 passed. All functional checks passed in both runs.
 
-These are software checks on synthetic data. They show the workbook does what
-its formulas say; they are not a scientific validation of the metrics.
+These are software checks. They show the workbook does what its formulas
+say and that the public copy reproduces the working workbook; they are not a
+scientific validation of the metrics.
 
 **Not checked automatically:** the click on the dashboard button itself (the
 macro it is bound to was run through Excel automation), and the visual
@@ -250,32 +295,35 @@ A workbook that looks empty can still carry cached query results and chart
 caches, the absolute path it was last saved to, the source path in each
 query, author and last-modified-by names, printer settings naming a local
 printer, and object names (here, the sensor ID in query and table names).
-That is why the build refreshes from known synthetic files and the audit
-compares the cached data against them.
+That is why the build refreshes from known files (the published
+demonstration night) and the audit compares the cached data against them.
 
 ### Rebuilding
 
 Rebuild whenever the working workbook's formulas, charts or macros change.
-Each command is one line:
+The demonstration files are already in the repository; the build reads them
+directly. Each command is one line:
 
 ```powershell
-python tools\make_synthetic_night.py --out <scratch>\syn
+powershell -ExecutionPolicy Bypass -File tools\build_template.ps1 -Source "<working workbook>" -DataFolder examples\demo-night-2026-11-26 -DataNoteFile examples\demo-night-2026-11-26\dashboard-note.txt -Output "<scratch>\template-raw.xlsm"
 ```
 
-Copy the two generated CSV files to `<scratch>\data` as `hr.csv` and
-`rr.csv`, then:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\build_template.ps1 -Source "<working workbook>" -DataFolder "<scratch>\data" -Output "<scratch>\template-raw.xlsm"
-```
+Expect to repeat this command: the R-R refresh crashes often with a full
+night (see the known issue above).
 
 ```powershell
 python tools\scrub_workbook.py "<scratch>\template-raw.xlsm" excel\template\athlete-recovery-template.xlsm
 ```
 
 ```powershell
-python tools\audit_workbook.py --terms config\private_terms.txt --expect-data "<scratch>\data" excel\template\athlete-recovery-template.xlsm
+python tools\audit_workbook.py --terms config\private_terms.txt --expect-data examples\demo-night-2026-11-26 excel\template\athlete-recovery-template.xlsm
 ```
+
+To build a copy with synthetic data instead (for example to share a variant
+with no personal data at all), generate a night with
+`tools\make_synthetic_night.py`, copy its two CSV files to a folder as
+`hr.csv` and `rr.csv`, and pass that folder as `-DataFolder` (and to
+`--expect-data`) with a matching `-DataNoteFile`.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tests\test_template.ps1

@@ -96,6 +96,14 @@ markers.csv
 !/examples/synthetic/
 !/examples/synthetic/**
 
+# Allowed: the ONE real recording the author has explicitly authorised for
+# publication, de-identified (see examples/demo-night-2026-11-26/README.md).
+# The exception names two files, not a pattern. No other real recording is
+# covered; adding one needs a new, explicit authorisation and its own
+# exception. tools/prepublish_check.sh pins these files to SHA256SUMS.
+!/examples/demo-night-2026-11-26/hr.csv
+!/examples/demo-night-2026-11-26/rr.csv
+
 # -----------------------------------------------------------------------------
 # 2. Excel workbooks
 # -----------------------------------------------------------------------------

@@ -14,6 +14,12 @@ day-to-day training load, and overnight cardiovascular and autonomic recovery.
 > **Excel intermittently crashes while the workbook refreshes**; see
 > [Known Limitations](#known-limitations) before using it.
 >
+> **The public workbook contains real physiological data**: one overnight
+> recording (night of 26 November 2026) that the project author has
+> voluntarily published to demonstrate the software. See
+> [Demonstration dataset](#demonstration-dataset). All other recordings
+> remain private; automated tests use synthetic data only.
+>
 > This is a personal research project, not a medical device, and nothing here
 > is medical advice. Feedback and collaboration are welcome: see
 > [Feedback and collaboration](#feedback-and-collaboration).
@@ -248,6 +254,12 @@ recording.** This was found during release testing and is not yet fixed.
   version (Microsoft 365, 16.0.20625.20108, 64-bit). Whether it occurs at a
   similar rate when the dashboard button is pressed by hand, or on other
   versions, has not been established. Reports are welcome.
+- **Worse with a full night.** Building the public workbook from the 7-hour
+  demonstration night (after this release) crashed Excel during the R-R
+  refresh in 18 of 21 attempts on the same Excel version; the functional
+  test, which uses 1-hour synthetic nights, then ran 34 macro refreshes
+  without a failure. Recording length may matter, but that has not been
+  tested systematically.
 - **What to do meanwhile.** Save the workbook before pressing the dashboard
   button. If Excel closes, reopen the workbook and press the button again.
 
@@ -346,9 +358,12 @@ The full account, including every failed run, is in
 │   ├── README.md               Workbook structure, template plan
 │   ├── power-query/            Power Query (M) source, as text
 │   ├── vba/                    VBA module, as text
-│   └── template/               Clean workbook template (synthetic data only)
+│   └── template/               Public workbook (caches the demonstration night)
+├── examples/
+│   └── demo-night-2026-11-26/  The one authorised real recording (de-identified)
 ├── tools/
 │   ├── make_synthetic_night.py Synthetic recording generator
+│   ├── deidentify_recording.py Removes clock time from an authorised recording
 │   ├── build_template.ps1      Builds the workbook template (drives Excel)
 │   ├── scrub_workbook.py       Removes save-time residue from a workbook
 │   ├── audit_workbook.py       Checks a workbook for private residue
@@ -362,7 +377,8 @@ The full account, including every failed run, is in
 │   ├── roadmap.md              Development plan and validation gates
 │   ├── privacy.md              What is and is not published
 │   ├── test-report-v0.1.0.md   What was tested for this release, and what failed
-│   └── publishing-checklist.md Steps before the repository goes public
+│   ├── publishing-checklist.md Steps before the repository goes public
+│   └── images/                 Dashboard picture used in this README
 ├── data/                       Local data only; contents are git-ignored
 ├── analysis/                   Planned Python package (empty)
 └── site/                       Planned public website (empty)
@@ -421,25 +437,93 @@ macros only inside the Excel instance it starts.
 ### Workbook
 
 [`excel/template/athlete-recovery-template.xlsm`](excel/template/athlete-recovery-template.xlsm)
-is the analysis workbook loaded with synthetic data. Open it, enable macros,
-set the `DataFolder` parameter in Power Query to the folder holding your
-staged `hr.csv` and `rr.csv`, enter your UTC offset on the `Settings` sheet,
-and press the dashboard button. Details, and
-the workbook's structure, are in [excel/README.md](excel/README.md); its
-Power Query and VBA sources are stored as text in `excel/`.
+is the analysis workbook. It opens showing the
+[demonstration night](#demonstration-dataset); every sheet and chart can be
+inspected without enabling macros. To analyse your own recording, set the
+`DataFolder` parameter in Power Query to the folder holding your staged
+`hr.csv` and `rr.csv`, enter your UTC offset on the `Settings` sheet, enable
+macros and press the dashboard button. Details, and the workbook's
+structure, are in [excel/README.md](excel/README.md); its Power Query and
+VBA sources are stored as text in `excel/`.
+
+![Dashboard of the public workbook showing the demonstration night: summary table, overnight heart rate and original and screened RMSSD in 5-minute windows](docs/images/demo-dashboard.png)
+
+*The dashboard with the demonstration night. Real data from the project
+author; values as computed by the workbook, unsmoothed. Elapsed time is
+exact; clock time has been removed.*
+
+### Macro security warnings
+
+The workbook contains one VBA module
+([`excel/vba/Module1.bas`](excel/vba/Module1.bas), stored as text so it can
+be read first). Its two macros refresh the two data queries and copy the
+night's summary row into the `Nightly Log` table. They do not access the
+network, run other programs or write files, and they do not save the
+workbook.
+
+Excel treats a downloaded macro-enabled file as untrusted, and you will
+probably see one or more of these:
+
+1. **Protected View** (yellow bar): the file came from the internet and
+   opens read-only. Choose *Enable Editing* if you want to change it.
+2. **Macros blocked** (red bar, "SECURITY RISK"): Windows has marked the
+   downloaded file as coming from the internet, and Excel blocks its macros
+   with no button to enable them. This is Microsoft's default for files
+   from the internet. To allow macros for this one file: close it,
+   right-click it in File Explorer, choose *Properties*, tick *Unblock* on
+   the *General* tab, choose *OK*, and reopen it. (PowerShell:
+   `Unblock-File <path to the file>`.)
+3. **Macros disabled** (yellow bar, "SECURITY WARNING"): choose
+   *Enable Content* for this file.
+4. **External data connections disabled**: the two queries read local CSV
+   files from the `DataFolder` you set. Enable them only after setting that
+   folder.
+
+Unblock only a copy you downloaded from this repository, after reading the
+module. Do not lower Excel's macro settings globally or add a broad trusted
+location for this. A clone made with Git is usually not marked as
+downloaded, so step 2 may not appear. Without macros the workbook still
+shows every value and chart, and *Data > Refresh All* still loads a
+recording; only the dashboard button and the nightly log need macros.
+Excel for Mac and other versions have not been tested.
 
 ---
 
 ## Data and privacy
 
-This repository contains code, documentation and synthetic examples. It does
-not contain the author's recordings. Raw recordings, working workbooks,
-session metadata (which includes body measurements and device serial numbers)
-and all credentials are excluded by [.gitignore](.gitignore) and checked by
-[tools/prepublish_check.sh](tools/prepublish_check.sh). The one workbook in
-the repository is a template that holds synthetic values only. Selected, deliberately
-chosen data will be published later with the planned website. The policy is
+This repository contains code, documentation, synthetic examples and
+**exactly one real recording**, published with the author's explicit
+authorisation (below). All of the author's other recordings, the working
+workbook, session metadata (which includes body measurements and device
+serial numbers) and all credentials are excluded by
+[.gitignore](.gitignore) and checked by
+[tools/prepublish_check.sh](tools/prepublish_check.sh). The policy is
 described in [docs/privacy.md](docs/privacy.md).
+
+### Demonstration dataset
+
+[`examples/demo-night-2026-11-26/`](examples/demo-night-2026-11-26/) holds
+the heart rate and R-R intervals of one overnight recording (night of
+26 November 2026). **This is real physiological data, voluntarily provided
+by the project author**, who authorised publication of this recording, its
+derived HRV values and its graphs, and of no other recording. It is the data
+cached in the public workbook, so the software can be seen working on a
+genuine night rather than an artificial one.
+
+- Values are the sensor's originals: not smoothed, edited, trimmed or
+  selected.
+- Clock time is removed: all timestamps are shifted by one undisclosed
+  constant so the night starts at 00:00 UTC. Elapsed time is exact.
+- The sensor ID, file paths, `session.json` and `markers.csv` are not
+  published.
+- The public workbook reproduces the author's private working workbook
+  exactly on this night (all whole-night and 5-minute values identical).
+- Licence: **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)** for the data, unlike the MIT-licensed
+  software (see [License](#license)).
+
+How the files were prepared and verified:
+[examples/demo-night-2026-11-26/README.md](examples/demo-night-2026-11-26/README.md).
+Automated tests do not use this recording; they generate synthetic data.
 
 ---
 
@@ -540,9 +624,26 @@ affiliated with or endorsed by them.
 
 ## License
 
-Released under the [MIT License](LICENSE): you may use, modify and
-redistribute the code, documentation, workbook template and synthetic
-examples, provided the copyright notice is kept.
+This repository uses **two licences**, for different things:
 
-Personal data published later for the project website is not covered by this
-license and will carry its own terms.
+| What | Licence |
+|---|---|
+| Software and documentation: code, scripts, tools, tests, the workbook's formulas, Power Query queries, charts and VBA macro, and the synthetic data generator and its output | [MIT](LICENSE) |
+| The demonstration dataset: `examples/demo-night-2026-11-26/hr.csv` and `rr.csv`, the same values cached in the public workbook, the HRV values derived from them and their graphs (including `docs/images/demo-dashboard.png`) | [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) |
+
+The **MIT licence** lets you use, modify and redistribute the software,
+including commercially, provided the copyright notice is kept. It does not
+cover the demonstration data.
+
+The **CC BY-NC 4.0 licence** lets you share and adapt the demonstration data
+for non-commercial purposes with attribution; commercial use of the data
+needs the author's permission. Details and a suggested attribution are in
+[the dataset's README](examples/demo-night-2026-11-26/README.md#licence-data-versus-software).
+
+So the public workbook file contains both: its structure and code are MIT,
+the night cached in it is CC BY-NC 4.0. Loading your own recording into it
+gives you a workbook whose data is yours.
+
+Neither licence is consent to publish any other recording by the author.
+Personal data published later for the project website will carry its own
+terms.

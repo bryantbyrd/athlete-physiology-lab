@@ -15,11 +15,12 @@ Checks (FAIL = must be fixed before the file is published):
   INFO  rows of cell data per sheet and cached chart points, for manual
         confirmation that only synthetic data remains
   FAIL  (with --expect-data) cached HR / RR columns that differ from the
-        given synthetic hr.csv / rr.csv
+        given hr.csv / rr.csv
 
-Without --expect-data this tool cannot tell synthetic numbers from real ones.
-With it, the cached recording is compared value for value against the
-synthetic files the template was built from. Inspect the file in Excel too.
+Without --expect-data this tool cannot tell which recording is cached. With
+it, the cached recording is compared value for value against the files the
+template was built from (synthetic, or the authorised demonstration night),
+so nothing else can be cached in it. Inspect the file in Excel too.
 
 Usage:
     python3 tools/audit_workbook.py [--terms FILE] [--expect-data DIR] WORKBOOK
@@ -111,7 +112,7 @@ def scan_text(label: str, text: str, terms: list[str], report: Report) -> None:
 
 
 def compare_cached_data(package: zipfile.ZipFile, workbook_xml: str, folder: Path, report: Report) -> None:
-    """Compare the cached HR and RR query tables with synthetic CSV files."""
+    """Compare the cached HR and RR query tables with the given CSV files."""
     import csv
 
     sheet_names = re.findall(r'<sheet name="([^"]+)"', workbook_xml)
@@ -225,8 +226,8 @@ def main() -> int:
     parser.add_argument("--terms", type=Path,
                         help="file of private terms, one per line (# for comments)")
     parser.add_argument("--expect-data", type=Path, metavar="DIR",
-                        help="folder with the synthetic hr.csv and rr.csv the workbook "
-                             "was built from; cached data must match them exactly")
+                        help="folder with the hr.csv and rr.csv the workbook was "
+                             "built from; cached data must match them exactly")
     args = parser.parse_args()
 
     if not args.workbook.is_file():
@@ -256,10 +257,10 @@ def main() -> int:
     fails = report.count("FAIL")
     print()
     if args.expect_data is not None:
-        tail = "Cached recording compared with the synthetic files given by --expect-data."
+        tail = f"Cached recording compared with the files in {args.expect_data}."
     else:
-        tail = ("Sheets and charts listed under INFO must contain synthetic data only; "
-                "without --expect-data this tool cannot verify that.")
+        tail = ("Sheets and charts listed under INFO hold whatever recording is cached; "
+                "without --expect-data this tool cannot verify which.")
     print(f"{fails} failure(s), {report.count('WARN')} warning(s). {tail}")
     return 1 if fails else 0
 

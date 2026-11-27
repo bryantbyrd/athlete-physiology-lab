@@ -9,8 +9,11 @@ out.
 
 - Source code and scripts
 - Documentation
-- Synthetic example data produced by `tools/make_synthetic_night.py`
-- A workbook template loaded with synthetic data, which has passed
+- Synthetic example data produced by `tools/make_synthetic_night.py`, used
+  by every automated test
+- **One real recording**, explicitly authorised for publication by the
+  author (see [Authorised demonstration dataset](#authorised-demonstration-dataset))
+- The public workbook, which caches that recording and has passed
   `tools/audit_workbook.py`
 - (Later) deliberately selected data for the public website
 
@@ -54,11 +57,62 @@ synthetic generator and the tests use the sensor ID `00000000`.
    every save (save path, author fields, printer settings), and
    **`tools/audit_workbook.py`** inspects the result for author metadata,
    absolute paths, identifier-like names and cached data before it is allowed
-   into `excel/template/`.
+   into `excel/template/`. Its cached HR and R-R columns must equal the
+   authorised demonstration files value for value, so the workbook cannot
+   carry any other night.
 4. **Review before push.** See [publishing-checklist.md](publishing-checklist.md).
 
 These are aids, not guarantees. A pattern scan cannot recognise every private
 detail; read the diff before every push.
+
+## Authorised demonstration dataset
+
+The author has explicitly authorised publication of **one** recording: the
+overnight recording of 26 November 2026, its heart rate and R-R intervals,
+the HRV values derived from it and the graphs of those values. It is
+published so that the software can be shown working on genuine physiology.
+It lives in [`examples/demo-night-2026-11-26/`](../examples/demo-night-2026-11-26/)
+and is the data cached in the public workbook.
+
+**Scope.** The authorisation covers that recording only. It does not cover
+any other night, recording metadata, training or laboratory data, or future
+recordings. Each of those would need its own explicit decision, its own
+folder and its own exception; nothing in this policy implies consent for
+them. All other recordings, the working workbook and the archive remain
+private.
+
+**Preparation** ([`tools/deidentify_recording.py`](../tools/deidentify_recording.py)):
+
+- physiological values are copied unchanged: no smoothing, editing, trimming
+  or selection;
+- all timestamps are shifted by one constant, not recorded anywhere, so the
+  recording starts at 00:00:00 UTC on its date; elapsed time is exact;
+- the sensor ID (archive and file names), `session.json`, `markers.csv` and
+  all file paths are left out;
+- the workbook is built from these files, so its time zone is UTC and it
+  reveals neither the real clock time nor the author's offset.
+
+What remains visible, by the author's decision: the date of the night, its
+length (about 7 hours) and the course of heart rate and HRV across it.
+
+**Enforcement** (`tools/prepublish_check.sh`):
+
+- `.gitignore` and the check exempt the two data files by exact path, not by
+  pattern; any other file in that folder, or any other data file anywhere,
+  fails;
+- the data files must match `SHA256SUMS`, so a different or longer recording
+  cannot be substituted under the same authorisation;
+- both files must start at exactly 2026-11-26 00:00:00.000 UTC;
+- the workbook's cached data must equal the files exactly;
+- the folder's README must state the terms of use.
+
+**Licence.** The dataset is published under CC BY-NC 4.0, separately from
+the MIT-licensed software; see its README. A licence governs reuse of these
+files only and never extends the authorisation to other recordings.
+
+**Withdrawal.** The author can withdraw the dataset by deleting the folder
+and rebuilding the workbook from synthetic data. Published history, forks
+and caches may keep copies; see the next section.
 
 ## If something private is committed
 
@@ -71,7 +125,8 @@ Removing a file in a later commit does not remove it from history.
 
 ## Releasing selected data
 
-Data published for the website will be:
+The demonstration dataset above follows these rules. Data published for the
+website will be:
 
 - chosen deliberately, file by file;
 - reduced to what the demonstration needs (derived series rather than raw

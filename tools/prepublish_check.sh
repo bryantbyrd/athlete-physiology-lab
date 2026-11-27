@@ -12,6 +12,10 @@
 # config/private_terms.txt. That file is git-ignored; if it exists, any tracked
 # file containing one of its terms fails the check.
 #
+# The single real recording the author has authorised for publication
+# (examples/demo-night-2026-11-26/) is exempt from the file-type rule by exact
+# path only, and is pinned to its SHA256SUMS; see docs/privacy.md.
+#
 # Exit status 0 = nothing found. This is an aid, not a guarantee: read the
 # diff before every push. See docs/privacy.md.
 
@@ -34,9 +38,14 @@ fi
 
 # --- 1. File types that should never be tracked -------------------------------
 allowed_workbook="excel/template/athlete-recovery-template.xlsm"
+# The one real recording the author has authorised for publication. Only these
+# exact paths are exempt; section 6 pins their content to SHA256SUMS.
+demo_dir="examples/demo-night-2026-11-26"
+demo_files=("$demo_dir/hr.csv" "$demo_dir/rr.csv")
+demo_allowed=("${demo_files[@]}" "$demo_dir/README.md" "$demo_dir/SHA256SUMS" "$demo_dir/dashboard-note.txt")
 for f in "${files[@]}"; do
     case "$f" in
-        "$allowed_workbook"|examples/synthetic/*) continue ;;
+        "$allowed_workbook"|examples/synthetic/*|"$demo_dir/hr.csv"|"$demo_dir/rr.csv") continue ;;
     esac
     case "${f,,}" in
         *.csv|*.tsv|*.zip|*.7z|*.gz|*.tgz|*.parquet|*.h5|*.hdf5|*.npy|*.npz|*.pkl|*.mat|*.db|*.sqlite|\
@@ -131,26 +140,50 @@ if git ls-files --error-unmatch "$allowed_workbook" >/dev/null 2>&1; then
     else
         audit_args=()
         [[ -f "$terms_file" ]] && audit_args=(--terms "$terms_file")
-        # Regenerate the synthetic night the template is built from (seed 1,
-        # 7 hours) and require the template's cached data to match it exactly.
-        syn=$(mktemp -d)
-        compared="cached data not compared"
-        if "$py" tools/make_synthetic_night.py --out "$syn" --hours 7 --seed 1 >/dev/null 2>&1; then
-            cp "$syn"/SF_*/00000000_hr.csv "$syn/hr.csv"
-            cp "$syn"/SF_*/00000000_rr.csv "$syn/rr.csv"
-            audit_args+=(--expect-data "$syn")
-            compared="cached data identical to the synthetic night"
-        fi
+        # The template caches the authorised demonstration night. Require its
+        # cached HR and RR columns to equal the published files exactly, so
+        # it can hold nothing else (no other night, no original timestamps).
+        audit_args+=(--expect-data "$demo_dir")
         if "$py" tools/audit_workbook.py "${audit_args[@]}" "$allowed_workbook" >/dev/null; then
-            echo "note  workbook template passed tools/audit_workbook.py ($compared)"
+            echo "note  workbook template passed tools/audit_workbook.py (cached data identical to $demo_dir)"
         else
             report "workbook template failed tools/audit_workbook.py (run it for details)"
         fi
-        rm -rf -- "$syn"
     fi
 fi
 
-# --- 6. Git identity ------------------------------------------------------------
+# --- 6. Authorised demonstration recording -------------------------------------
+# Exactly the files listed above may exist under $demo_dir, the two data files
+# must match SHA256SUMS (so a different or extended recording cannot be
+# swapped in under the same authorisation), and the recording must start at
+# 00:00:00.000 UTC on its label date (proof that clock time was removed).
+for f in "${files[@]}"; do
+    [[ "$f" == "$demo_dir"/* ]] || continue
+    ok=0
+    for a in "${demo_allowed[@]}"; do [[ "$f" == "$a" ]] && ok=1; done
+    (( ok )) || report "unexpected file in the authorised demonstration folder: $f"
+done
+if [[ -f "$demo_dir/SHA256SUMS" ]]; then
+    if ! (cd "$demo_dir" && sha256sum --quiet -c SHA256SUMS >/dev/null 2>&1); then
+        report "$demo_dir: data files do not match SHA256SUMS"
+    fi
+    for f in "${demo_files[@]}"; do
+        first=$(sed -n 2p "$f" 2>/dev/null | cut -d, -f1)
+        earliest=$(tail -n +2 "$f" | cut -d, -f1 | sort -n | head -1)
+        # 1795651200000 = 2026-11-26T00:00:00.000Z
+        if [[ "$earliest" != "1795651200000" || "$first" != "1795651200000" ]]; then
+            report "$f: does not start at 2026-11-26 00:00:00 UTC; clock time may not have been removed"
+        fi
+    done
+    if ! grep -q "CC BY-NC 4.0" "$demo_dir/README.md" 2>/dev/null; then
+        report "$demo_dir/README.md: the data licence (CC BY-NC 4.0) is not stated"
+    fi
+    echo "note  authorised demonstration recording checked ($demo_dir)"
+elif git ls-files --error-unmatch "${demo_files[0]}" >/dev/null 2>&1; then
+    report "$demo_dir: SHA256SUMS missing"
+fi
+
+# --- 7. Git identity ------------------------------------------------------------
 email=$(git config user.email || true)
 case "$email" in
     *noreply*) ;;

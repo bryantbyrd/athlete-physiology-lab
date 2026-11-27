@@ -6,10 +6,39 @@ anything may change between releases.
 
 ## Unreleased
 
-Documentation only; no change to the software, its calculations or its
-documented limitations.
+No change to any calculation. The scientific documentation changes below
+are documentation only; the demonstration dataset changes the data the
+public workbook opens with and its dashboard formatting.
+
+### Added
+- **Demonstration dataset with real physiological data**
+  (`examples/demo-night-2026-11-26/`): one overnight recording voluntarily
+  published by the project author, with authorisation limited to that
+  recording. Values unchanged; clock time removed (start shifted to 00:00
+  UTC, elapsed time exact); sensor ID and metadata left out. The data is
+  licensed CC BY-NC 4.0; the software remains MIT.
+- `tools/deidentify_recording.py`: prepares an authorised recording for
+  publication and verifies that only timestamps changed.
+- README: macro security warnings when opening a downloaded workbook, and
+  a picture of the dashboard (`docs/images/demo-dashboard.png`).
+- `tools/prepublish_check.sh`: exempts the two demonstration files by exact
+  path, pins them to `SHA256SUMS`, checks they start at 00:00 UTC, requires
+  stated terms of use, and compares the workbook's cached data with them.
 
 ### Changed
+- Public workbook now opens with the demonstration night instead of a
+  synthetic night. Verified against the author's working workbook: all 14
+  whole-night values and all 840 five-minute values identical. Automated
+  tests still use synthetic data only (`tests/test_template.ps1`: 50 of 50
+  checks passed).
+- Dashboard formatting: consistent decimals, banded summary table, charts
+  drawn with straight segments instead of Excel's smoothed lines, resized
+  charts, heart-rate axis from 30 bpm, a note describing the data. No
+  formula or value changed.
+- `tools/build_template.ps1`: accepts any authorised or synthetic data
+  folder and a dashboard note (`-DataNoteFile`).
+- README, privacy policy, workbook documentation and publishing checklist
+  describe the demonstration dataset and its limits.
 - README rationale: LT1 and LT2 described as individualised intensity
   anchors; LT2 explicitly not treated as equivalent to critical power or
   critical speed (also in the roadmap, milestone 4).
@@ -24,6 +53,10 @@ documented limitations.
 ### Fixed
 - `docs/methods.md` said the `.xlsm` file is not under version control. The
   sanitised template is tracked; only the private working workbook is not.
+
+### Known issues
+- Building the workbook from the full 7-hour demonstration night crashed
+  Excel during the R-R refresh in 18 of 21 attempts (see Known Limitations).
 
 ## 0.1.0 — 2026-11-26
 

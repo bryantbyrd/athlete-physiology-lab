@@ -11,14 +11,17 @@
          parameterised versions in excel/power-query/;
       4. renames queries, query tables and connections to hr_stream / rr_stream,
          removing the sensor ID from every object name;
-      5. refreshes both queries from SYNTHETIC hr.csv / rr.csv, so all cached
-         cell values and chart caches hold synthetic data;
+      5. refreshes both queries from the hr.csv / rr.csv in -DataFolder, so
+         all cached cell values and chart caches hold exactly that data
+         (synthetic, or the authorised demonstration night);
       6. applies the template design corrections (time-zone table, #N/A for
          unavailable rolling means, chart and label fixes) if the working
          workbook does not already have them;
-      7. deletes every row of the nightly log;
-      8. resets DataFolder to a neutral placeholder path;
-      9. removes document properties and saves the result.
+      7. formats the dashboard (layout, decimals, chart lines; no values or
+         formulas change) and adds a note describing the data (-DataNoteFile);
+      8. deletes every row of the nightly log;
+      9. resets DataFolder to a neutral placeholder path;
+     10. removes document properties and saves the result.
 
     The saved file is NOT yet publishable: Excel records the folder it saved to
     and may keep printer settings. Run tools/scrub_workbook.py on the output,
@@ -28,8 +31,14 @@
     Working workbook (.xlsm). Never opened directly; never modified.
 
 .PARAMETER DataFolder
-    Folder containing synthetic hr.csv and rr.csv
-    (see tools/make_synthetic_night.py).
+    Folder containing the hr.csv and rr.csv to cache in the template: either
+    synthetic files (tools/make_synthetic_night.py) or a recording that has
+    been explicitly authorised for publication and prepared with
+    tools/deidentify_recording.py (see docs/privacy.md).
+
+.PARAMETER DataNoteFile
+    Optional UTF-8 text file whose contents are shown in a text box on the
+    dashboard, stating what data the workbook holds.
 
 .PARAMETER Output
     Path for the unscrubbed template (.xlsm). Write it outside the repository.
@@ -48,6 +57,7 @@ param(
     [Parameter(Mandatory = $true)][string]$Source,
     [Parameter(Mandatory = $true)][string]$DataFolder,
     [Parameter(Mandatory = $true)][string]$Output,
+    [string]$DataNoteFile = '',
     [string]$WorkDir = (Join-Path $env:TEMP 'apl-template-build')
 )
 
@@ -62,9 +72,12 @@ $Source = (Resolve-Path -LiteralPath $Source).Path
 $DataFolder = (Resolve-Path -LiteralPath $DataFolder).Path.TrimEnd('\') + '\'
 foreach ($name in 'hr.csv', 'rr.csv') {
     if (-not (Test-Path -LiteralPath (Join-Path $DataFolder $name))) {
-        throw "Synthetic data file not found: $name in $DataFolder"
+        throw "Data file not found: $name in $DataFolder"
     }
 }
+$dataNote = ''
+# Office text boxes use CR as the paragraph mark.
+if ($DataNoteFile) { $dataNote = ((Get-Content -LiteralPath $DataNoteFile -Raw -Encoding UTF8).Trim() -replace "`r?`n", "`r") }
 $Output = [IO.Path]::GetFullPath($Output)
 if ($Output -eq $Source) { throw 'Output must not be the source workbook.' }
 
@@ -252,6 +265,142 @@ function Update-TemplateDesign($xl, $wb) {
     }
 }
 
+# Dashboard presentation. Formatting only: no formula, named range, cell
+# position or series source is changed, so every displayed number is the same
+# cell value as before, shown with a fixed number of decimals.
+#
+#   * title, banded summary table, right-aligned values, consistent decimals;
+#   * charts drawn as straight line segments between the 5-minute values
+#     (Excel's "smoothed" line type draws curves that are not in the data);
+#   * charts sized to fit next to the table; light gridlines; distinct colours
+#     for original and screened RMSSD; elapsed-time axis ticks every 60 min;
+#   * a text box stating what data the workbook holds (-DataNote).
+function Set-DashboardStyle($wb, [string]$note) {
+    function Rgb([int]$r, [int]$g, [int]$b) { return $r + 256 * $g + 65536 * $b }
+    $navy = Rgb 31 56 100; $band = Rgb 242 245 250; $rule = Rgb 217 217 217
+    $grey = Rgb 89 89 89; $hrColour = Rgb 192 57 43
+    $origColour = Rgb 157 179 204; $scrColour = Rgb 31 78 121
+
+    $d = $wb.Worksheets.Item('Dashboard')
+    $d.Cells.Font.Name = 'Calibri'
+    $d.Columns.Item(1).ColumnWidth = 30
+    $d.Columns.Item(2).ColumnWidth = 18
+
+    $title = $d.Range('A1:B1')
+    $d.Range('A1').Font.Size = 15
+    $d.Range('A1').Font.Bold = $true
+    $d.Range('A1').Font.Color = $navy
+    $title.RowHeight = 30
+    $title.VerticalAlignment = -4108                       # xlCenter
+    $title.Borders.Item(9).LineStyle = 1                   # xlEdgeBottom
+    $title.Borders.Item(9).Color = $navy
+    $title.Borders.Item(9).Weight = -4138                  # xlMedium
+
+    # Decimals chosen per quantity; the cell values themselves are unchanged.
+    $formats = [ordered]@{
+        'B2' = 'd mmm yyyy'; 'B3' = '0.00'; 'B4' = '0.0'; 'B5' = '0';
+        'B6' = '0.0'; 'B7' = '0.00'; 'B8' = '0.0'; 'B9' = '0.00';
+        'B10' = '0.0'; 'B11' = '0.00'; 'B12' = '0.00'
+    }
+    foreach ($cell in $formats.Keys) { $d.Range($cell).NumberFormat = $formats[$cell] }
+    for ($r = 2; $r -le 12; $r++) {
+        $row = $d.Range("A${r}:B${r}")
+        $row.RowHeight = 19
+        $row.VerticalAlignment = -4108
+        $row.Font.Size = 11
+        $row.Interior.Color = $(if ($r % 2 -eq 0) { $band } else { Rgb 255 255 255 })
+        $row.Borders.Item(9).LineStyle = 1
+        $row.Borders.Item(9).Color = $rule
+        $d.Range("A$r").Font.Color = $grey
+        $d.Range("A$r").IndentLevel = 1
+        $d.Range("B$r").Font.Bold = $true
+        $d.Range("B$r").HorizontalAlignment = -4152        # xlRight
+    }
+    $tableBottom = $d.Range('A13').Top
+
+    foreach ($shape in @($d.Shapes)) {
+        if ($shape.Type -eq 1 -and [string]$shape.OnAction -match 'RefreshAndSaveNight') {
+            $shape.Left = 6; $shape.Top = $tableBottom + 14
+            $shape.Width = $d.Range('A1:B1').Width - 12; $shape.Height = 34
+            $shape.Fill.ForeColor.RGB = $navy
+            $shape.Line.Visible = 0
+            $shape.TextFrame2.TextRange.Font.Size = 11
+            $shape.TextFrame2.TextRange.Font.Bold = 1
+            $buttonBottom = $shape.Top + $shape.Height
+        }
+        if ($shape.Name -eq 'Data note') { $shape.Delete() }
+    }
+    if (-not $buttonBottom) { $buttonBottom = $tableBottom }
+    if ($note) {
+        $box = $d.Shapes.AddTextbox(1, 6, $buttonBottom + 14, $d.Range('A1:B1').Width - 12, 150)
+        $box.Name = 'Data note'
+        $box.TextFrame2.TextRange.Text = $note
+        $box.TextFrame2.TextRange.Font.Size = 9.5
+        $box.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = $grey
+        $headLength = $note.IndexOf("`r")
+        if ($headLength -gt 0) {
+            $head = $box.TextFrame2.TextRange.Characters(1, $headLength)
+            $head.Font.Bold = 1
+            $head.Font.Fill.ForeColor.RGB = $navy
+        }
+        $box.TextFrame2.WordWrap = 1
+        $box.TextFrame2.AutoSize = 1                       # shape fits text
+        $box.Fill.ForeColor.RGB = $band
+        $box.Line.ForeColor.RGB = $rule
+        $box.TextFrame2.MarginLeft = 6; $box.TextFrame2.MarginRight = 6
+        $box.TextFrame2.MarginTop = 5; $box.TextFrame2.MarginBottom = 5
+    }
+
+    $left = $d.Range('C1').Left + 12
+    $top = 6
+    foreach ($co in @($d.ChartObjects())) {
+        $ch = $co.Chart
+        $isRmssd = $ch.SeriesCollection().Count -gt 1
+        $co.Left = $left; $co.Top = $top; $co.Width = 640; $co.Height = 300
+        $top += 312
+        if ($ch.ChartType -eq 72 -or $ch.ChartType -eq 73) { $ch.ChartType = 74 }   # smoothed -> straight lines with markers
+        if ($ch.HasTitle) {
+            $ch.ChartTitle.Format.TextFrame2.TextRange.Font.Size = 13
+            $ch.ChartTitle.Format.TextFrame2.TextRange.Font.Bold = 1
+            $ch.ChartTitle.Format.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = $navy
+        }
+        for ($i = 1; $i -le $ch.SeriesCollection().Count; $i++) {
+            $s = $ch.SeriesCollection($i)
+            $colour = $hrColour
+            if ($isRmssd) { $colour = $(if ([string]$s.Formula -match 'Screened') { $scrColour } else { $origColour }) }
+            $s.Smooth = $false
+            $s.Format.Line.Visible = -1
+            $s.Format.Line.ForeColor.RGB = $colour
+            $s.Format.Line.Weight = 1.75
+            $s.MarkerStyle = 8                              # xlMarkerStyleCircle
+            $s.MarkerSize = 4
+            $s.MarkerBackgroundColor = $colour
+            $s.MarkerForegroundColor = $colour
+        }
+        $x = $ch.Axes(1); $y = $ch.Axes(2)
+        $x.MinimumScale = 0
+        $x.MaximumScaleIsAuto = $true
+        $x.MajorUnit = 60
+        $x.TickLabels.NumberFormat = '0'
+        $y.TickLabels.NumberFormat = '0'
+        # RMSSD from zero. Heart rate from a generic 30 bpm floor (Excel's
+        # automatic minimum is 0, which flattens the overnight course); the
+        # maximum stays automatic so no recording is cut off at the top.
+        if ($isRmssd) { $y.MinimumScale = 0 } else { $y.MinimumScale = 30 }
+        foreach ($axis in $x, $y) {
+            $axis.TickLabels.Font.Size = 9
+            $axis.TickLabels.Font.Color = $grey
+            if ($axis.HasTitle) { $axis.AxisTitle.Format.TextFrame2.TextRange.Font.Size = 10 }
+        }
+        $y.HasMajorGridlines = $true
+        $y.MajorGridlines.Format.Line.ForeColor.RGB = $rule
+        $x.HasMajorGridlines = $false
+        $ch.HasLegend = $isRmssd
+        if ($isRmssd) { $ch.Legend.Position = -4160 }       # xlLegendPositionTop
+    }
+    Write-Host '  design: dashboard formatting applied (no values or formulas changed)'
+}
+
 # Grey out "#N/A" in the rolling-mean columns (shown until enough nights exist).
 function Set-RollingMeanFormat($wb) {
     $missing = [System.Reflection.Missing]::Value
@@ -338,7 +487,7 @@ try {
         if ($lo.Name -ne $tables[$sheet]) { $lo.Name = $tables[$sheet] }
     }
 
-    # --- Refresh from synthetic data -------------------------------------------
+    # --- Refresh from the data folder -------------------------------------------
     foreach ($sheet in 'HR', 'RR') {
         $lo = $wb.Worksheets.Item($sheet).ListObjects.Item(1)
         if (-not $lo.QueryTable.Refresh($false)) { throw "Refresh failed for sheet $sheet." }
@@ -350,6 +499,7 @@ try {
     # --- Design corrections (see Update-TemplateDesign above) ------------------
     Update-TemplateDesign $xl $wb
     $xl.CalculateFull()
+    Set-DashboardStyle $wb $dataNote
 
     # --- Empty the nightly log -------------------------------------------------
     $log = $wb.Worksheets.Item('Nightly Log').ListObjects.Item(1)
@@ -371,9 +521,9 @@ try {
     $wb.Worksheets.Item('Dashboard').Activate()
     $wb.Worksheets.Item('Dashboard').Range('A1').Select() | Out-Null
 
-    # --- Report (synthetic values) ----------------------------------------------
+    # --- Report ------------------------------------------------------------------
     $summary = $wb.Worksheets.Item('HRV Analysis')
-    Write-Host '  Whole-night summary of the synthetic recording:'
+    Write-Host '  Whole-night summary of the cached recording:'
     for ($col = 1; $col -le 17; $col++) {
         Write-Host ("    {0,-28} {1}" -f $summary.Cells.Item(1, $col).Text, $summary.Cells.Item(2, $col).Text)
     }
